@@ -823,6 +823,81 @@ def delete_file(file_id: int):
     return {"status": "ok"}
 
 
+DEFAULT_MIX_SOURCE = """# bench default mix, used because no mix file was pasted
+from pydub import AudioSegment
+from pathlib import Path
+
+def mix(voice_path, music_path, out_path, **_):
+    voice = AudioSegment.from_file(voice_path).set_frame_rate(44100).set_channels(2)
+    if music_path and Path(music_path).exists():
+        music = AudioSegment.from_file(music_path).set_frame_rate(44100).set_channels(2)
+        music = music.apply_gain(-14.0)
+        if len(music) < len(voice):
+            loops = len(voice) // len(music) + 1
+            music = music * loops
+        music = music[:len(voice) + 3000].fade_out(2000)
+        mixed = music.overlay(voice)
+    else:
+        mixed = voice
+    mixed.export(out_path, format="mp3", bitrate="256k")
+"""
+
+
+@app.get("/api/bench/experiments/{experiment_id}/zip")
+def get_zip(experiment_id: int):
+    import zipfile
+
+    connection = db()
+    row = fetch_experiment(connection, experiment_id)
+    connection.close()
+    if not row:
+        raise HTTPException(404, "experiment not found")
+
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as bundle:
+        if row["prompt_py"]:
+            bundle.writestr("prompt.py", row["prompt_py"])
+        if row["mix_py"]:
+            bundle.writestr("mix.py", row["mix_py"])
+        elif row["mix_file"]:
+            bundle.writestr("default_mix.py", DEFAULT_MIX_SOURCE)
+        if row["speech_text"]:
+            bundle.writestr("answer.txt", row["speech_text"])
+
+        info = [
+            f"experiment {row['id']}",
+            f"created {row['created_at']}",
+            f"topic: {row['topic'] or 'none'}",
+            f"model: {row['model'] or 'none'}",
+            f"voice id: {row['voice_id'] or 'none'}",
+            f"stability: {row['stability']}",
+            f"style: {row['style']}",
+            f"speaker boost: {'on' if row['boost'] else 'off'}",
+            f"music: {row['music_filename'] or 'none'}",
+            f"mix source: {row['mix_source'] or 'none'}",
+            f"verdict: {row['verdict'] or 'not judged'}",
+            f"comment: {row['comment'] or 'none'}",
+        ]
+        if row["parent_id"]:
+            info.append(f"remix of experiment {row['parent_id']}")
+        bundle.writestr("info.txt", "\n".join(info) + "\n")
+
+        if row["mix_file"] and (AUDIO_DIR / row["mix_file"]).exists():
+            bundle.write(AUDIO_DIR / row["mix_file"], "mix.mp3")
+        if row["voice_file"] and (AUDIO_DIR / row["voice_file"]).exists():
+            bundle.write(AUDIO_DIR / row["voice_file"], "voice.wav")
+        if row["music_file"] and (MUSIC_DIR / row["music_file"]).exists():
+            bundle.write(MUSIC_DIR / row["music_file"], "music_" + (row["music_filename"] or "track"))
+
+    buffer.seek(0)
+    return Response(
+        content=buffer.read(),
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename=experiment_{experiment_id}.zip"},
+    )
+
+
+
 @app.get("/api/bench/audio/{filename}")
 def get_audio(filename: str, request: Request):
     safe_name = Path(filename).name

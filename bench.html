@@ -276,8 +276,8 @@
       <label>Model</label>
       <select id="model">
         <option value="claude-sonnet-4-6">claude-sonnet-4-6</option>
-        <option value="claude-opus-4-1">claude-opus-4-1</option>
-        <option value="claude-haiku-4-5">claude-haiku-4-5</option>
+        <option value="claude-opus-4-8">claude-opus-4-8</option>
+        <option value="claude-haiku-4-5-20251001">claude-haiku-4-5</option>
       </select>
     </details>
 
@@ -560,6 +560,7 @@
         ${experiment.prompt_py || experiment.mix_py ? '<a href="#" data-usefiles="' + experiment.id + '">use these files</a>' : ""}
         ${experiment.voice_url ? '<a href="#" data-remix="' + experiment.id + '">' + ($("mixPy").value.trim() ? "remix with current mix.py" : "remix") + "</a>" : ""}
         ${experiment.speech_text ? '<a href="#" data-showtext="' + experiment.id + '">show text</a>' : ""}
+        <a href="/api/bench/experiments/${experiment.id}/zip" download>zip</a>
         <a href="#" data-del="${experiment.id}" style="color:#b00">delete</a>
       </div>
       ${experiment.speech_text ? '<div class="speechtext" data-text="' + experiment.id + '">' + esc(experiment.speech_text) + "</div>" : ""}
