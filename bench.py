@@ -31,7 +31,7 @@ DB_PATH = DATA_DIR / "bench.db"
 for folder in (DATA_DIR, AUDIO_DIR, MUSIC_DIR):
     folder.mkdir(parents=True, exist_ok=True)
 
-app = FastAPI(title="Chills Bench")
+app = FastAPI(title="Stimgen v2")
 
 
 # database
@@ -950,7 +950,7 @@ def get_audio(filename: str, request: Request):
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "service": "chills-bench"}
+    return {"status": "ok", "service": "stimgen-v2"}
 
 
 HTML_PATH = Path(__file__).resolve().parent / "bench.html"
