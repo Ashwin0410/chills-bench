@@ -654,6 +654,88 @@ def remix(
         connection.close()
 
 
+@app.delete("/api/bench/experiments/{experiment_id}")
+def delete_experiment(experiment_id: int):
+    connection = db()
+    row = fetch_experiment(connection, experiment_id)
+    if not row:
+        connection.close()
+        raise HTTPException(404, "experiment not found")
+
+    for field, folder in (("voice_file", AUDIO_DIR), ("mix_file", AUDIO_DIR), ("music_file", MUSIC_DIR)):
+        name = row[field]
+        if name:
+            path = folder / name
+            if path.exists():
+                path.unlink()
+
+    connection.execute("delete from experiments where id = ?", (experiment_id,))
+    connection.commit()
+    renumber_experiments(connection)
+    connection.close()
+    print(f"deleted experiment {experiment_id} and renumbered")
+    return {"status": "ok"}
+
+
+def renumber_experiments(connection):
+    # close the gap after a delete: ids become 1..n in creation order,
+    # audio and music files renamed to match, remix parents remapped,
+    # parents that no longer exist become null
+    rows = connection.execute("select * from experiments order by id").fetchall()
+    id_map = {}
+    for position, row in enumerate(rows, start=1):
+        id_map[row["id"]] = position
+
+    for row in rows:
+        old_id = row["id"]
+        new_id = id_map[old_id]
+        if new_id == old_id:
+            continue
+
+        renames = []
+        if row["voice_file"]:
+            renames.append((AUDIO_DIR, row["voice_file"], f"{new_id}_voice.wav", "voice_file"))
+        if row["mix_file"]:
+            renames.append((AUDIO_DIR, row["mix_file"], f"{new_id}_mix.mp3", "mix_file"))
+        if row["music_file"]:
+            tail = row["music_file"].split("_", 1)[1] if "_" in row["music_file"] else row["music_file"]
+            renames.append((MUSIC_DIR, row["music_file"], f"{new_id}_{tail}", "music_file"))
+
+        updates = {}
+        for folder, old_name, new_name, field in renames:
+            old_path = folder / old_name
+            if old_path.exists():
+                old_path.rename(folder / new_name)
+            updates[field] = new_name
+
+        new_parent = None
+        if row["parent_id"]:
+            new_parent = id_map.get(row["parent_id"])
+
+        connection.execute(
+            "update experiments set id = ?, voice_file = ?, mix_file = ?, music_file = ?, parent_id = ? where id = ?",
+            (new_id,
+             updates.get("voice_file", row["voice_file"]),
+             updates.get("mix_file", row["mix_file"]),
+             updates.get("music_file", row["music_file"]),
+             new_parent,
+             old_id),
+        )
+
+    # parents pointing at deleted experiments become null even when ids did not move
+    surviving = set(id_map.values())
+    for row in connection.execute("select id, parent_id from experiments where parent_id is not null").fetchall():
+        if row["parent_id"] not in surviving:
+            connection.execute("update experiments set parent_id = null where id = ?", (row["id"],))
+
+    total = len(rows)
+    connection.execute("delete from sqlite_sequence where name = 'experiments'")
+    if total:
+        connection.execute("insert into sqlite_sequence (name, seq) values ('experiments', ?)", (total,))
+    connection.commit()
+
+
+
 @app.get("/api/bench/experiments")
 def list_experiments():
     connection = db()

@@ -560,6 +560,7 @@
         ${experiment.prompt_py || experiment.mix_py ? '<a href="#" data-usefiles="' + experiment.id + '">use these files</a>' : ""}
         ${experiment.voice_url ? '<a href="#" data-remix="' + experiment.id + '">' + ($("mixPy").value.trim() ? "remix with current mix.py" : "remix") + "</a>" : ""}
         ${experiment.speech_text ? '<a href="#" data-showtext="' + experiment.id + '">show text</a>' : ""}
+        <a href="#" data-del="${experiment.id}" style="color:#b00">delete</a>
       </div>
       ${experiment.speech_text ? '<div class="speechtext" data-text="' + experiment.id + '">' + esc(experiment.speech_text) + "</div>" : ""}
       <div class="vrow">
@@ -608,6 +609,27 @@
           link.onclick = (event) => {
             event.preventDefault();
             useCardFiles(link.dataset.usefiles);
+          };
+        });
+        list.querySelectorAll("[data-del]").forEach((link) => {
+          link.onclick = async (event) => {
+            event.preventDefault();
+            if (link.textContent !== "confirm delete") {
+              link.textContent = "confirm delete";
+              setTimeout(() => {
+                link.textContent = "delete";
+              }, 4000);
+              return;
+            }
+            try {
+              await api("/api/bench/experiments/" + link.dataset.del, {
+                method: "DELETE",
+              });
+              st("deleted, history renumbered");
+              loadHistory();
+            } catch (error) {
+              st(error.message);
+            }
           };
         });
       }
