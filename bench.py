@@ -240,15 +240,15 @@ def load_mix_function(code):
 
 
 def default_mix(voice_path, music_path, out_path, **_):
-    # plain fallback used when the mix box is empty
+    # plain fallback used when the mix box is empty, plays the full music track
     voice = make_stereo(load_audio(voice_path).set_frame_rate(44100))
     if music_path and Path(music_path).exists():
         music = make_stereo(load_audio(music_path).set_frame_rate(44100))
         music = music.apply_gain(-14.0)
         if len(music) < len(voice):
             loops = len(voice) // len(music) + 1
-            music = music * loops
-        music = music[:len(voice) + 3000].fade_out(2000)
+            music = (music * loops)[:len(voice) + 3000]
+        music = music.fade_out(2000)
         mixed = music.overlay(voice)
     else:
         mixed = voice
@@ -823,7 +823,7 @@ def delete_file(file_id: int):
     return {"status": "ok"}
 
 
-DEFAULT_MIX_SOURCE = """# bench default mix, used because no mix file was pasted
+DEFAULT_MIX_SOURCE = """# bench default mix, used because no mix file was pasted, plays the full music track
 from pydub import AudioSegment
 from pathlib import Path
 
@@ -834,8 +834,8 @@ def mix(voice_path, music_path, out_path, **_):
         music = music.apply_gain(-14.0)
         if len(music) < len(voice):
             loops = len(voice) // len(music) + 1
-            music = music * loops
-        music = music[:len(voice) + 3000].fade_out(2000)
+            music = (music * loops)[:len(voice) + 3000]
+        music = music.fade_out(2000)
         mixed = music.overlay(voice)
     else:
         mixed = voice
