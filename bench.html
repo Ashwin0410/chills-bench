@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Chills Bench</title>
+    <title>Stimgen v2</title>
     <style>
       :root {
         font-family:
@@ -13,7 +13,7 @@
       body {
         background: #fff;
         color: #111;
-        max-width: 620px;
+        max-width: 1100px;
         margin: 0 auto;
         padding: 32px 20px 80px;
         font-size: 15px;
@@ -23,6 +23,23 @@
         font-size: 15px;
         font-weight: 600;
         margin: 0 0 20px;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 36px;
+        align-items: start;
+      }
+      @media (max-width: 900px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        #history {
+          order: 2;
+        }
+        #main {
+          order: 1;
+        }
       }
       label {
         display: block;
@@ -47,6 +64,7 @@
         line-height: 1.55;
       }
       button {
+        position: relative;
         background: #111;
         color: #fff;
         border: 0;
@@ -64,6 +82,33 @@
       }
       button:disabled {
         opacity: 0.4;
+      }
+      button.loading {
+        color: transparent;
+        pointer-events: none;
+        opacity: 1;
+      }
+      button.loading::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 14px;
+        height: 14px;
+        margin: -8px 0 0 -8px;
+        border: 2px solid #fff;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      button.sec.loading::after {
+        border-color: #111;
+        border-top-color: transparent;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
       }
       .row {
         display: flex;
@@ -108,6 +153,11 @@
         color: #aaa;
         margin-top: 5px;
       }
+      #mixNote {
+        font-size: 13px;
+        color: #888;
+        margin-top: 10px;
+      }
       .filebar {
         display: flex;
         gap: 8px;
@@ -136,23 +186,18 @@
         padding: 8px 12px;
         font-size: 13px;
       }
-      #mixConfirm {
-        display: flex;
-        gap: 8px;
-        margin-top: 10px;
-        align-items: center;
-        font-size: 13px;
-        color: #888;
-      }
-      #mixConfirm button {
-        margin: 0;
-        padding: 8px 12px;
-        font-size: 13px;
-      }
       #history {
-        margin-top: 40px;
-        border-top: 1px solid #eee;
-        padding-top: 16px;
+        border-right: 1px solid #eee;
+        padding-right: 24px;
+      }
+      @media (max-width: 900px) {
+        #history {
+          border-right: 0;
+          padding-right: 0;
+          border-top: 1px solid #eee;
+          padding-top: 16px;
+          margin-top: 24px;
+        }
       }
       #history h2 {
         font-size: 13px;
@@ -235,133 +280,132 @@
     </style>
   </head>
   <body>
-    <h1>Chills Bench</h1>
+    <h1>Stimgen v2</h1>
 
-    <label>What do you want to meditate about</label>
-    <textarea id="answer" rows="3"></textarea>
+    <div class="layout">
+      <div id="history">
+        <h2>History</h2>
+        <div id="expList"></div>
+      </div>
 
-    <div class="row">
-      <div>
-        <label>Voice ID</label
-        ><input type="text" id="voice" placeholder="21m00Tcm4TlvDq8ikWAM" />
-      </div>
-      <div>
-        <label>Music</label><input type="file" id="music" accept="audio/*" />
-      </div>
-    </div>
+      <div id="main">
+        <label>What do you want to meditate about</label>
+        <textarea id="answer" rows="3"></textarea>
 
-    <details>
-      <summary>prompt.py</summary>
-      <div class="filebar">
-        <select id="promptSaved">
-          <option value="">saved prompt files</option>
-        </select>
-        <button class="sec" id="promptSave">Save</button>
-        <button class="sec" id="promptDelete">Delete</button>
-      </div>
-      <div class="namebar" id="promptNamebar" hidden>
-        <input
-          type="text"
-          id="promptName"
-          placeholder="name this prompt file"
-        />
-        <button class="sec" id="promptNameOk">Save it</button>
-        <button class="sec" id="promptNameCancel">Cancel</button>
-      </div>
-      <textarea id="promptPy" rows="6" placeholder="paste prompt.py"></textarea>
-      <div class="hint">
-        Any prompt file works. Needs SYSTEM_PROMPT or build_user_prompt(). Repo
-        files work as is. The topic above is passed in.
-      </div>
-      <label>Model</label>
-      <select id="model">
-        <option value="claude-sonnet-4-6">claude-sonnet-4-6</option>
-        <option value="claude-opus-4-8">claude-opus-4-8</option>
-        <option value="claude-haiku-4-5-20251001">claude-haiku-4-5</option>
-      </select>
-    </details>
+        <div class="row">
+          <div>
+            <label>Voice ID</label
+            ><input type="text" id="voice" placeholder="21m00Tcm4TlvDq8ikWAM" />
+          </div>
+          <div>
+            <label>Music</label><input type="file" id="music" accept="audio/*" />
+          </div>
+        </div>
 
-    <details>
-      <summary>mix.py</summary>
-      <div class="filebar">
-        <select id="mixSaved">
-          <option value="">saved mix files</option>
-        </select>
-        <button class="sec" id="mixSave">Save</button>
-        <button class="sec" id="mixDelete">Delete</button>
-      </div>
-      <div class="namebar" id="mixNamebar" hidden>
-        <input type="text" id="mixName" placeholder="name this mix file" />
-        <button class="sec" id="mixNameOk">Save it</button>
-        <button class="sec" id="mixNameCancel">Cancel</button>
-      </div>
-      <textarea id="mixPy" rows="5" placeholder="paste mix.py"></textarea>
-      <div class="hint">
-        Any mix file works. Needs a mix(voice_path, music_path, out_path)
-        function. Repo files work as is. Empty uses a plain default mix.
-      </div>
-    </details>
-
-    <details>
-      <summary>Voice parameters</summary>
-      <div class="row">
-        <div>
-          <label>Stability</label
-          ><select id="stab">
-            <option value="0">Creative</option>
-            <option value="0.5" selected>Natural</option>
-            <option value="1">Robust</option>
+        <details>
+          <summary>prompt.py</summary>
+          <div class="filebar">
+            <select id="promptSaved">
+              <option value="">saved prompt files</option>
+            </select>
+            <button class="sec" id="promptSave">Save</button>
+            <button class="sec" id="promptDelete">Delete</button>
+          </div>
+          <div class="namebar" id="promptNamebar" hidden>
+            <input
+              type="text"
+              id="promptName"
+              placeholder="name this prompt file"
+            />
+            <button class="sec" id="promptNameOk">Save it</button>
+            <button class="sec" id="promptNameCancel">Cancel</button>
+          </div>
+          <textarea id="promptPy" rows="6" placeholder="paste prompt.py"></textarea>
+          <div class="hint">
+            Any prompt file works. Needs SYSTEM_PROMPT or build_user_prompt().
+            Repo files work as is. The topic above is passed in.
+          </div>
+          <label>Model</label>
+          <select id="model">
+            <option value="claude-sonnet-4-6">claude-sonnet-4-6</option>
+            <option value="claude-opus-4-8">claude-opus-4-8</option>
+            <option value="claude-haiku-4-5-20251001">claude-haiku-4-5</option>
           </select>
-        </div>
-        <div>
-          <label>Style 0 to 1</label
-          ><input
-            type="number"
-            id="style"
-            value="0"
-            step="0.05"
-            min="0"
-            max="1"
-          />
-        </div>
+        </details>
+
+        <details>
+          <summary>mix.py</summary>
+          <div class="filebar">
+            <select id="mixSaved">
+              <option value="">saved mix files</option>
+            </select>
+            <button class="sec" id="mixSave">Save</button>
+            <button class="sec" id="mixDelete">Delete</button>
+          </div>
+          <div class="namebar" id="mixNamebar" hidden>
+            <input type="text" id="mixName" placeholder="name this mix file" />
+            <button class="sec" id="mixNameOk">Save it</button>
+            <button class="sec" id="mixNameCancel">Cancel</button>
+          </div>
+          <textarea id="mixPy" rows="5" placeholder="paste mix.py"></textarea>
+          <div class="hint">
+            Any mix file works. Needs a mix(voice_path, music_path, out_path)
+            function. Repo files work as is. Empty uses a plain default mix.
+          </div>
+        </details>
+
+        <details>
+          <summary>Voice parameters</summary>
+          <div class="row">
+            <div>
+              <label>Stability</label
+              ><select id="stab">
+                <option value="0">Creative</option>
+                <option value="0.5" selected>Natural</option>
+                <option value="1">Robust</option>
+              </select>
+            </div>
+            <div>
+              <label>Style 0 to 1</label
+              ><input
+                type="number"
+                id="style"
+                value="0"
+                step="0.05"
+                min="0"
+                max="1"
+              />
+            </div>
+          </div>
+          <div class="check">
+            <input type="checkbox" id="boost" checked /><label
+              for="boost"
+              style="margin: 0"
+              >Speaker boost</label
+            >
+          </div>
+        </details>
+
+        <label>Speech text</label>
+        <textarea
+          id="speech"
+          rows="6"
+          placeholder="write answer fills this, or paste a speech yourself"
+        ></textarea>
+
+        <button class="sec" id="write">Write answer</button>
+        <button class="sec" id="voiceOnly">Make voice only</button>
+        <button id="make">Make mp3</button>
+        <div id="mixNote" hidden></div>
+        <div id="st"></div>
+        <audio id="out" controls hidden></audio>
       </div>
-      <div class="check">
-        <input type="checkbox" id="boost" checked /><label
-          for="boost"
-          style="margin: 0"
-          >Speaker boost</label
-        >
-      </div>
-    </details>
-
-    <label>Speech text</label>
-    <textarea
-      id="speech"
-      rows="6"
-      placeholder="write answer fills this, or paste a speech yourself"
-    ></textarea>
-
-    <button class="sec" id="write">Write answer</button>
-    <button class="sec" id="voiceOnly">Make voice only</button>
-    <button id="make">Make mp3</button>
-    <div id="mixConfirm" hidden>
-      <span>no mix file pasted, continue with the plain default mix?</span>
-      <button class="sec" id="mixConfirmYes">Continue</button>
-      <button class="sec" id="mixConfirmNo">Cancel</button>
-    </div>
-    <div id="st"></div>
-    <audio id="out" controls hidden></audio>
-
-    <div id="history">
-      <h2>History</h2>
-      <div id="expList"></div>
     </div>
 
     <script>
       const $ = (id) => document.getElementById(id);
       const st = (message) => ($("st").textContent = message);
       let lastWriteId = 0;
-      let pendingRemixId = 0;
       let experimentsCache = [];
 
       function esc(text) {
@@ -377,13 +421,49 @@
         return data;
       }
 
+      function setLoading(button, on) {
+        button.classList.toggle("loading", on);
+        button.disabled = on;
+      }
+
+      function clearAudio() {
+        const player = $("out");
+        player.pause();
+        player.removeAttribute("src");
+        player.hidden = true;
+      }
+
+      function updateMixNote() {
+        const note = $("mixNote");
+        if ($("mixPy").value.trim()) {
+          note.hidden = true;
+          return;
+        }
+        const musicFile = $("music").files[0];
+        if (musicFile) {
+          note.textContent =
+            "no mix file, the plain default mix will be used over " +
+            musicFile.name;
+        } else {
+          note.textContent =
+            "no mix file and no music, make mp3 will output voice only";
+        }
+        note.hidden = false;
+      }
+
+      $("mixPy").addEventListener("input", updateMixNote);
+      $("music").addEventListener("change", updateMixNote);
+
       $("write").onclick = async () => {
         if (!$("promptPy").value.trim()) {
           st("paste a prompt file first");
           return;
         }
+        $("speech").value = "";
+        clearAudio();
+        lastWriteId = 0;
         st("writing");
-        $("write").disabled = true;
+        setLoading($("write"), true);
         try {
           const data = await api("/api/bench/write", {
             method: "POST",
@@ -401,39 +481,10 @@
         } catch (error) {
           st(error.message);
         }
-        $("write").disabled = false;
+        setLoading($("write"), false);
       };
 
-      function musicNameForMake() {
-        const musicFile = $("music").files[0];
-        return musicFile ? musicFile.name : "";
-      }
-
-      function musicNameForRemix(id) {
-        const musicFile = $("music").files[0];
-        if (musicFile) return musicFile.name;
-        const parent = experimentsCache.find(
-          (experiment) => String(experiment.id) === String(id),
-        );
-        return parent && parent.music_filename
-          ? parent.music_filename + " (original track)"
-          : "";
-      }
-
-      function setConfirmText(music) {
-        const span = $("mixConfirm").querySelector("span");
-        if (music)
-          span.textContent =
-            "no mix file pasted, continue with the plain default mix over " +
-            music +
-            "?";
-        else
-          span.textContent =
-            "no mix file pasted and no music, continue with voice only output?";
-      }
-
-      async function render(voiceOnly, defaultMixConfirmed) {
-        if (!defaultMixConfirmed) pendingRemixId = 0;
+      async function render(voiceOnly) {
         if (!$("speech").value.trim()) {
           st("speech text is empty, use write answer or paste one");
           return;
@@ -442,17 +493,14 @@
           st("paste a voice ID");
           return;
         }
-        if (!voiceOnly && !$("mixPy").value.trim() && !defaultMixConfirmed) {
-          setConfirmText(musicNameForMake());
-          $("mixConfirm").hidden = false;
-          return;
-        }
-        $("mixConfirm").hidden = true;
+        clearAudio();
+        const pressed = voiceOnly ? $("voiceOnly") : $("make");
         st(
           voiceOnly
             ? "making voice, around a minute"
             : "making, this takes a minute or two",
         );
+        setLoading(pressed, true);
         $("make").disabled = true;
         $("voiceOnly").disabled = true;
         try {
@@ -490,23 +538,13 @@
         } catch (error) {
           st(error.message);
         }
+        setLoading(pressed, false);
         $("make").disabled = false;
         $("voiceOnly").disabled = false;
       }
 
-      $("make").onclick = () => render(false, false);
-      $("voiceOnly").onclick = () => render(true, false);
-      $("mixConfirmYes").onclick = () => {
-        if (pendingRemixId) {
-          const id = pendingRemixId;
-          pendingRemixId = 0;
-          remix(id, true);
-        } else render(false, true);
-      };
-      $("mixConfirmNo").onclick = () => {
-        $("mixConfirm").hidden = true;
-        pendingRemixId = 0;
-      };
+      $("make").onclick = () => render(false);
+      $("voiceOnly").onclick = () => render(true);
 
       async function loadHistory() {
         try {
@@ -659,6 +697,7 @@
         if (experiment.prompt_py) $("promptPy").value = experiment.prompt_py;
         if (experiment.mix_py) $("mixPy").value = experiment.mix_py;
         if (experiment.topic) $("answer").value = experiment.topic;
+        updateMixNote();
         st("loaded files from experiment " + id + " into the boxes");
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
@@ -696,14 +735,8 @@
         }
       }
 
-      async function remix(id, defaultMixConfirmed) {
-        if (!$("mixPy").value.trim() && !defaultMixConfirmed) {
-          pendingRemixId = id;
-          setConfirmText(musicNameForRemix(id));
-          $("mixConfirm").hidden = false;
-          return;
-        }
-        $("mixConfirm").hidden = true;
+      async function remix(id) {
+        clearAudio();
         st("remixing " + id);
         try {
           const form = new FormData();
@@ -771,6 +804,7 @@
           try {
             const file = await api("/api/bench/files/" + id);
             $(textareaId).value = file.content;
+            updateMixNote();
             st("loaded " + file.name);
           } catch (error) {
             st(error.message);
@@ -866,6 +900,7 @@
 
       loadHistory();
       loadFiles();
+      updateMixNote();
     </script>
   </body>
 </html>
