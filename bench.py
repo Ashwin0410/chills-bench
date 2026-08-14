@@ -324,9 +324,12 @@ def call_claude(model, system_prompt, user_prompt):
 
 SENTENCE_SPLIT = re.compile(r"(?<=[\.\!\?])\s+")
 PAUSE_TOKEN = "[pause]"
+LONG_PAUSE_TOKEN = "[long pause]"
 PAUSE_SENTINEL = "<<<PAUSE>>>"
+LONG_PAUSE_SENTINEL = "<<<LONGPAUSE>>>"
 MAX_CHARS = 3200
-PAUSE_MS = 900
+PAUSE_MS = 3000
+LONG_PAUSE_MS = 6000
 CHUNK_GAP_MS = 350
 
 
@@ -393,20 +396,34 @@ def synth_chunk(text, voice_id, voice_settings):
 def synth(text, voice_id, voice_settings, out_path):
     if not ELEVENLABS_API_KEY:
         raise HTTPException(503, "ELEVENLABS_API_KEY is not set on the server")
-    raw = text.strip().replace("[breath]", " ").replace(PAUSE_TOKEN, f" {PAUSE_SENTINEL} ")
-    blocks = [block.strip() for block in raw.split(PAUSE_SENTINEL) if block.strip()]
-    if not blocks:
-        raise HTTPException(400, "speech text is empty after cleanup")
+    # long pause replaced first so both tokens become their own sentinels
+    raw = text.strip().replace("[breath]", " ")
+    raw = raw.replace(LONG_PAUSE_TOKEN, f" {LONG_PAUSE_SENTINEL} ")
+    raw = raw.replace(PAUSE_TOKEN, f" {PAUSE_SENTINEL} ")
+    parts = re.split(f"({LONG_PAUSE_SENTINEL}|{PAUSE_SENTINEL})", raw)
 
     segments = []
-    for block_index, block in enumerate(blocks):
-        for part_index, part in enumerate(split_chunks(block)):
-            print(f"tts block {block_index + 1}/{len(blocks)} chunk {part_index + 1}, {len(part)} chars")
-            segments.append(synth_chunk(part, voice_id, voice_settings))
-            segments.append(AudioSegment.silent(duration=CHUNK_GAP_MS, frame_rate=44100))
-        segments.pop()
-        if block_index < len(blocks) - 1:
+    spoke = False
+    for part in parts:
+        if part == LONG_PAUSE_SENTINEL:
+            # every token adds its own silence, so stacked pauses compound
+            segments.append(AudioSegment.silent(duration=LONG_PAUSE_MS, frame_rate=44100))
+            continue
+        if part == PAUSE_SENTINEL:
             segments.append(AudioSegment.silent(duration=PAUSE_MS, frame_rate=44100))
+            continue
+        part = part.strip()
+        if not part:
+            continue
+        chunks = split_chunks(part)
+        for chunk_index, chunk in enumerate(chunks):
+            print(f"tts chunk {chunk_index + 1}/{len(chunks)}, {len(chunk)} chars")
+            if chunk_index:
+                segments.append(AudioSegment.silent(duration=CHUNK_GAP_MS, frame_rate=44100))
+            segments.append(synth_chunk(chunk, voice_id, voice_settings))
+        spoke = True
+    if not spoke:
+        raise HTTPException(400, "speech text is empty after cleanup")
 
     full = segments[0]
     for segment in segments[1:]:
