@@ -219,6 +219,22 @@
         font-size: 14px;
         margin-top: 4px;
       }
+      .exp .topic.clamp {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .exp .more {
+        font-size: 12px;
+        color: #888;
+        cursor: pointer;
+        margin-top: 2px;
+        display: none;
+      }
+      .exp .more.show {
+        display: inline-block;
+      }
       .exp .source {
         font-size: 12px;
         color: #888;
@@ -587,7 +603,7 @@
             return `
     <div class="exp" data-id="${experiment.id}">
       <div class="meta">#${experiment.id}${remixTag} · ${esc(when)}</div>
-      ${experiment.topic ? '<div class="topic">' + esc(experiment.topic) + "</div>" : ""}
+      ${experiment.topic ? '<div class="topic clamp" data-topic="' + experiment.id + '">' + esc(experiment.topic) + '</div><a href="#" class="more" data-moretopic="' + experiment.id + '">see more</a>' : ""}
       <div class="source">${esc(source)}</div>
       ${audioUrl ? '<audio controls preload="none" src="' + audioUrl + '"></audio>' : ""}
       <div class="links">
@@ -608,6 +624,7 @@
       </div>
       <div class="comment">
         <textarea rows="2" placeholder="comment" data-comment="${experiment.id}">${esc(experiment.comment)}</textarea>
+        <a href="#" class="more" data-morecomment="${experiment.id}">see more</a>
         <button class="sec" style="margin-top:6px;padding:7px 12px;font-size:13px" data-save="${experiment.id}">save comment</button>
       </div>
       <div class="params">${params}</div>
@@ -615,6 +632,37 @@
           })
           .join("");
 
+        list.querySelectorAll("[data-moretopic]").forEach((link) => {
+          const topic = list.querySelector(
+            '.topic[data-topic="' + link.dataset.moretopic + '"]',
+          );
+          if (topic.scrollHeight > topic.clientHeight + 1)
+            link.classList.add("show");
+          link.onclick = (event) => {
+            event.preventDefault();
+            const clamped = topic.classList.toggle("clamp");
+            link.textContent = clamped ? "see more" : "see less";
+          };
+        });
+        list.querySelectorAll("[data-morecomment]").forEach((link) => {
+          const box = list.querySelector(
+            '[data-comment="' + link.dataset.morecomment + '"]',
+          );
+          if (box.scrollHeight > box.clientHeight + 1)
+            link.classList.add("show");
+          link.onclick = (event) => {
+            event.preventDefault();
+            if (box.dataset.expanded === "1") {
+              box.style.height = "";
+              box.dataset.expanded = "0";
+              link.textContent = "see more";
+            } else {
+              box.style.height = box.scrollHeight + 6 + "px";
+              box.dataset.expanded = "1";
+              link.textContent = "see less";
+            }
+          };
+        });
         list.querySelectorAll("[data-verdict]").forEach((button) => {
           button.onclick = () =>
             saveVerdict(button.dataset.id, button.dataset.verdict);
