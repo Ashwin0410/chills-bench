@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Chills Bench</title>
+    <style>
+      :root {
+        font-family:
+          -apple-system, "SF Pro Text", "SF Pro Display", BlinkMacSystemFont,
+          "Helvetica Neue", sans-serif;
+      }
+      body {
+        background: #fff;
+        color: #111;
+        max-width: 620px;
+        margin: 0 auto;
+        padding: 32px 20px 80px;
+        font-size: 15px;
+        line-height: 1.5;
+      }
+      h1 {
+        font-size: 15px;
+        font-weight: 600;
+        margin: 0 0 20px;
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        color: #888;
+        margin: 16px 0 5px;
+      }
+      textarea,
+      input,
+      select {
+        width: 100%;
+        background: #fff;
+        color: #111;
+        border: 1px solid #d8d8d8;
+        border-radius: 8px;
+        padding: 9px 11px;
+        font: inherit;
+        font-size: 14px;
+      }
+      textarea {
+        resize: vertical;
+        line-height: 1.55;
+      }
+      button {
+        background: #111;
+        color: #fff;
+        border: 0;
+        border-radius: 8px;
+        padding: 10px 18px;
+        font: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        margin: 20px 8px 0 0;
+      }
+      button.sec {
+        background: #f2f2f2;
+        color: #111;
+      }
+      button:disabled {
+        opacity: 0.4;
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+      }
+      .row > * {
+        flex: 1;
+        min-width: 0;
+      }
+      details {
+        margin-top: 18px;
+        border-top: 1px solid #eee;
+        padding-top: 12px;
+      }
+      summary {
+        font-size: 13px;
+        color: #888;
+        cursor: pointer;
+      }
+      .check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 16px;
+        font-size: 14px;
+      }
+      .check input {
+        width: auto;
+      }
+      audio {
+        width: 100%;
+        margin-top: 16px;
+      }
+      #st {
+        font-size: 13px;
+        color: #888;
+        margin-top: 10px;
+        min-height: 18px;
+      }
+      .hint {
+        font-size: 11px;
+        color: #aaa;
+        margin-top: 5px;
+      }
+      .filebar {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+        align-items: center;
+      }
+      .filebar select {
+        flex: 1;
+      }
+      .filebar button {
+        margin: 0;
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+      .namebar {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+        align-items: center;
+      }
+      .namebar input {
+        flex: 1;
+      }
+      .namebar button {
+        margin: 0;
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+      #mixConfirm {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+        align-items: center;
+        font-size: 13px;
+        color: #888;
+      }
+      #mixConfirm button {
+        margin: 0;
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+      #history {
+        margin-top: 40px;
+        border-top: 1px solid #eee;
+        padding-top: 16px;
+      }
+      #history h2 {
+        font-size: 13px;
+        font-weight: 600;
+        color: #888;
+        margin: 0 0 8px;
+      }
+      .exp {
+        border: 1px solid #eee;
+        border-radius: 10px;
+        padding: 14px;
+        margin-top: 12px;
+      }
+      .exp .meta {
+        font-size: 12px;
+        color: #888;
+      }
+      .exp .topic {
+        font-size: 14px;
+        margin-top: 4px;
+      }
+      .exp .source {
+        font-size: 12px;
+        color: #888;
+        margin-top: 6px;
+      }
+      .exp audio {
+        margin-top: 10px;
+      }
+      .exp .links {
+        margin-top: 8px;
+        font-size: 12px;
+      }
+      .exp .links a {
+        color: #111;
+        margin-right: 14px;
+      }
+      .exp .speechtext {
+        display: none;
+        font-size: 13px;
+        color: #444;
+        white-space: pre-wrap;
+        background: #fafafa;
+        border-radius: 8px;
+        padding: 10px;
+        margin-top: 8px;
+      }
+      .exp .speechtext.show {
+        display: block;
+      }
+      .exp .vrow {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .exp .vrow button {
+        margin: 0;
+        padding: 7px 12px;
+        font-size: 13px;
+      }
+      .exp button.on {
+        background: #111;
+        color: #fff;
+      }
+      .exp button.off {
+        background: #f2f2f2;
+        color: #111;
+      }
+      .exp .comment {
+        margin-top: 8px;
+      }
+      .exp .comment textarea {
+        font-size: 13px;
+      }
+      .exp .params {
+        font-size: 11px;
+        color: #aaa;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Chills Bench</h1>
+
+    <label>What do you want to meditate about</label>
+    <textarea id="answer" rows="3"></textarea>
+
+    <div class="row">
+      <div>
+        <label>Voice ID</label
+        ><input type="text" id="voice" placeholder="21m00Tcm4TlvDq8ikWAM" />
+      </div>
+      <div>
+        <label>Music</label><input type="file" id="music" accept="audio/*" />
+      </div>
+    </div>
+
+    <details>
+      <summary>prompt.py</summary>
+      <div class="filebar">
+        <select id="promptSaved">
+          <option value="">saved prompt files</option>
+        </select>
+        <button class="sec" id="promptSave">Save</button>
+        <button class="sec" id="promptDelete">Delete</button>
+      </div>
+      <div class="namebar" id="promptNamebar" hidden>
+        <input
+          type="text"
+          id="promptName"
+          placeholder="name this prompt file"
+        />
+        <button class="sec" id="promptNameOk">Save it</button>
+        <button class="sec" id="promptNameCancel">Cancel</button>
+      </div>
+      <textarea id="promptPy" rows="6" placeholder="paste prompt.py"></textarea>
+      <div class="hint">
+        Any prompt file works. Needs SYSTEM_PROMPT or build_user_prompt(). Repo
+        files work as is. The topic above is passed in.
+      </div>
+      <label>Model</label>
+      <select id="model">
+        <option value="claude-sonnet-4-6">claude-sonnet-4-6</option>
+        <option value="claude-opus-4-1">claude-opus-4-1</option>
+        <option value="claude-haiku-4-5">claude-haiku-4-5</option>
+      </select>
+    </details>
+
+    <details>
+      <summary>mix.py</summary>
+      <div class="filebar">
+        <select id="mixSaved">
+          <option value="">saved mix files</option>
+        </select>
+        <button class="sec" id="mixSave">Save</button>
+        <button class="sec" id="mixDelete">Delete</button>
+      </div>
+      <div class="namebar" id="mixNamebar" hidden>
+        <input type="text" id="mixName" placeholder="name this mix file" />
+        <button class="sec" id="mixNameOk">Save it</button>
+        <button class="sec" id="mixNameCancel">Cancel</button>
+      </div>
+      <textarea id="mixPy" rows="5" placeholder="paste mix.py"></textarea>
+      <div class="hint">
+        Any mix file works. Needs a mix(voice_path, music_path, out_path)
+        function. Repo files work as is. Empty uses a plain default mix.
+      </div>
+    </details>
+
+    <details>
+      <summary>Voice parameters</summary>
+      <div class="row">
+        <div>
+          <label>Stability</label
+          ><select id="stab">
+            <option value="0">Creative</option>
+            <option value="0.5" selected>Natural</option>
+            <option value="1">Robust</option>
+          </select>
+        </div>
+        <div>
+          <label>Style 0 to 1</label
+          ><input
+            type="number"
+            id="style"
+            value="0"
+            step="0.05"
+            min="0"
+            max="1"
+          />
+        </div>
+      </div>
+      <div class="check">
+        <input type="checkbox" id="boost" checked /><label
+          for="boost"
+          style="margin: 0"
+          >Speaker boost</label
+        >
+      </div>
+    </details>
+
+    <label>Speech text</label>
+    <textarea
+      id="speech"
+      rows="6"
+      placeholder="write answer fills this, or paste a speech yourself"
+    ></textarea>
+
+    <button class="sec" id="write">Write answer</button>
+    <button class="sec" id="voiceOnly">Make voice only</button>
+    <button id="make">Make mp3</button>
+    <div id="mixConfirm" hidden>
+      <span>no mix file pasted, continue with the plain default mix?</span>
+      <button class="sec" id="mixConfirmYes">Continue</button>
+      <button class="sec" id="mixConfirmNo">Cancel</button>
+    </div>
+    <div id="st"></div>
+    <audio id="out" controls hidden></audio>
+
+    <div id="history">
+      <h2>History</h2>
+      <div id="expList"></div>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const st = (message) => ($("st").textContent = message);
+      let lastWriteId = 0;
+      let pendingRemixId = 0;
+      let experimentsCache = [];
+
+      function esc(text) {
+        const div = document.createElement("div");
+        div.textContent = text || "";
+        return div.innerHTML;
+      }
+
+      async function api(path, options = {}) {
+        const response = await fetch(path, options);
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.detail || "request failed");
+        return data;
+      }
+
+      $("write").onclick = async () => {
+        if (!$("promptPy").value.trim()) {
+          st("paste a prompt file first");
+          return;
+        }
+        st("writing");
+        $("write").disabled = true;
+        try {
+          const data = await api("/api/bench/write", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              topic: $("answer").value,
+              prompt_py: $("promptPy").value,
+              model: $("model").value,
+            }),
+          });
+          $("speech").value = data.speech;
+          lastWriteId = data.experiment_id;
+          st("text saved as experiment " + data.experiment_id);
+          loadHistory();
+        } catch (error) {
+          st(error.message);
+        }
+        $("write").disabled = false;
+      };
+
+      function musicNameForMake() {
+        const musicFile = $("music").files[0];
+        return musicFile ? musicFile.name : "";
+      }
+
+      function musicNameForRemix(id) {
+        const musicFile = $("music").files[0];
+        if (musicFile) return musicFile.name;
+        const parent = experimentsCache.find(
+          (experiment) => String(experiment.id) === String(id),
+        );
+        return parent && parent.music_filename
+          ? parent.music_filename + " (original track)"
+          : "";
+      }
+
+      function setConfirmText(music) {
+        const span = $("mixConfirm").querySelector("span");
+        if (music)
+          span.textContent =
+            "no mix file pasted, continue with the plain default mix over " +
+            music +
+            "?";
+        else
+          span.textContent =
+            "no mix file pasted and no music, continue with voice only output?";
+      }
+
+      async function render(voiceOnly, defaultMixConfirmed) {
+        if (!defaultMixConfirmed) pendingRemixId = 0;
+        if (!$("speech").value.trim()) {
+          st("speech text is empty, use write answer or paste one");
+          return;
+        }
+        if (!$("voice").value.trim()) {
+          st("paste a voice ID");
+          return;
+        }
+        if (!voiceOnly && !$("mixPy").value.trim() && !defaultMixConfirmed) {
+          setConfirmText(musicNameForMake());
+          $("mixConfirm").hidden = false;
+          return;
+        }
+        $("mixConfirm").hidden = true;
+        st(
+          voiceOnly
+            ? "making voice, around a minute"
+            : "making, this takes a minute or two",
+        );
+        $("make").disabled = true;
+        $("voiceOnly").disabled = true;
+        try {
+          const form = new FormData();
+          form.append("topic", $("answer").value);
+          form.append("speech", $("speech").value);
+          form.append("prompt_py", $("promptPy").value);
+          form.append("mix_py", $("mixPy").value);
+          form.append("model", $("model").value);
+          form.append("voice_id", $("voice").value.trim());
+          form.append("stability", $("stab").value);
+          form.append("style", $("style").value);
+          form.append("boost", $("boost").checked);
+          form.append("experiment_id", lastWriteId);
+          form.append("voice_only", voiceOnly);
+          const musicFile = $("music").files[0];
+          if (musicFile && !voiceOnly) form.append("music", musicFile);
+          const experiment = await api("/api/bench/make", {
+            method: "POST",
+            body: form,
+          });
+          lastWriteId = 0;
+          $("out").src = experiment.mix_url || experiment.voice_url;
+          $("out").hidden = false;
+          st(
+            "done, experiment " +
+              experiment.id +
+              ", " +
+              experiment.mix_source +
+              (experiment.music_filename
+                ? ", " + experiment.music_filename
+                : ""),
+          );
+          loadHistory();
+        } catch (error) {
+          st(error.message);
+        }
+        $("make").disabled = false;
+        $("voiceOnly").disabled = false;
+      }
+
+      $("make").onclick = () => render(false, false);
+      $("voiceOnly").onclick = () => render(true, false);
+      $("mixConfirmYes").onclick = () => {
+        if (pendingRemixId) {
+          const id = pendingRemixId;
+          pendingRemixId = 0;
+          remix(id, true);
+        } else render(false, true);
+      };
+      $("mixConfirmNo").onclick = () => {
+        $("mixConfirm").hidden = true;
+        pendingRemixId = 0;
+      };
+
+      async function loadHistory() {
+        try {
+          const data = await api("/api/bench/experiments");
+          experimentsCache = data.experiments;
+          renderHistory(data.experiments);
+        } catch (error) {}
+      }
+
+      function renderHistory(experiments) {
+        const list = $("expList");
+        if (!experiments.length) {
+          list.innerHTML =
+            '<div style="font-size:13px;color:#aaa;margin-top:8px">no experiments yet</div>';
+          return;
+        }
+        list.innerHTML = experiments
+          .map((experiment) => {
+            const when = new Date(experiment.created_at).toLocaleString();
+            const remixTag = experiment.parent_id
+              ? " remix of " + experiment.parent_id
+              : "";
+            const audioUrl = experiment.mix_url || experiment.voice_url;
+            const source = audioUrl
+              ? experiment.mix_source || "unknown mix"
+              : "text only, not voiced";
+            const params =
+              "voice " +
+              esc(experiment.voice_id || "none") +
+              ", stability " +
+              experiment.stability +
+              ", style " +
+              experiment.style +
+              ", boost " +
+              (experiment.boost ? "on" : "off") +
+              (experiment.model ? ", " + esc(experiment.model) : "") +
+              (experiment.music_filename
+                ? ", music " + esc(experiment.music_filename)
+                : "");
+            return `
+    <div class="exp" data-id="${experiment.id}">
+      <div class="meta">#${experiment.id}${remixTag} · ${esc(when)}</div>
+      ${experiment.topic ? '<div class="topic">' + esc(experiment.topic) + "</div>" : ""}
+      <div class="source">${esc(source)}</div>
+      ${audioUrl ? '<audio controls preload="none" src="' + audioUrl + '"></audio>' : ""}
+      <div class="links">
+        ${experiment.mix_url ? '<a href="' + experiment.mix_url + '" download>download mix</a>' : ""}
+        ${experiment.voice_url ? '<a href="' + experiment.voice_url + '" download>download voice</a>' : ""}
+        ${experiment.prompt_py ? '<a href="#" data-dlfile="prompt" data-id="' + experiment.id + '">prompt.py</a>' : ""}
+        ${experiment.mix_py ? '<a href="#" data-dlfile="mix" data-id="' + experiment.id + '">mix.py</a>' : ""}
+        ${experiment.prompt_py || experiment.mix_py ? '<a href="#" data-usefiles="' + experiment.id + '">use these files</a>' : ""}
+        ${experiment.voice_url ? '<a href="#" data-remix="' + experiment.id + '">' + ($("mixPy").value.trim() ? "remix with current mix.py" : "remix") + "</a>" : ""}
+        ${experiment.speech_text ? '<a href="#" data-showtext="' + experiment.id + '">show text</a>' : ""}
+      </div>
+      ${experiment.speech_text ? '<div class="speechtext" data-text="' + experiment.id + '">' + esc(experiment.speech_text) + "</div>" : ""}
+      <div class="vrow">
+        <button class="${experiment.verdict === "worked" ? "on" : "off"}" data-verdict="worked" data-id="${experiment.id}">worked</button>
+        <button class="${experiment.verdict === "did not work" ? "on" : "off"}" data-verdict="did not work" data-id="${experiment.id}">did not work</button>
+      </div>
+      <div class="comment">
+        <textarea rows="2" placeholder="comment" data-comment="${experiment.id}">${esc(experiment.comment)}</textarea>
+        <button class="sec" style="margin-top:6px;padding:7px 12px;font-size:13px" data-save="${experiment.id}">save comment</button>
+      </div>
+      <div class="params">${params}</div>
+    </div>`;
+          })
+          .join("");
+
+        list.querySelectorAll("[data-verdict]").forEach((button) => {
+          button.onclick = () =>
+            saveVerdict(button.dataset.id, button.dataset.verdict);
+        });
+        list.querySelectorAll("[data-save]").forEach((button) => {
+          button.onclick = () => saveVerdict(button.dataset.save, null);
+        });
+        list.querySelectorAll("[data-remix]").forEach((link) => {
+          link.onclick = (event) => {
+            event.preventDefault();
+            remix(link.dataset.remix);
+          };
+        });
+        list.querySelectorAll("[data-showtext]").forEach((link) => {
+          link.onclick = (event) => {
+            event.preventDefault();
+            const block = list.querySelector(
+              '.speechtext[data-text="' + link.dataset.showtext + '"]',
+            );
+            const showing = block.classList.toggle("show");
+            link.textContent = showing ? "hide text" : "show text";
+          };
+        });
+        list.querySelectorAll("[data-dlfile]").forEach((link) => {
+          link.onclick = (event) => {
+            event.preventDefault();
+            downloadCardFile(link.dataset.id, link.dataset.dlfile);
+          };
+        });
+        list.querySelectorAll("[data-usefiles]").forEach((link) => {
+          link.onclick = (event) => {
+            event.preventDefault();
+            useCardFiles(link.dataset.usefiles);
+          };
+        });
+      }
+
+      function downloadCardFile(id, kind) {
+        const experiment = experimentsCache.find(
+          (candidate) => String(candidate.id) === String(id),
+        );
+        if (!experiment) return;
+        const content =
+          kind === "prompt" ? experiment.prompt_py : experiment.mix_py;
+        if (!content) return;
+        const blob = new Blob([content], { type: "text/x-python" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = kind + ".py";
+        link.click();
+        URL.revokeObjectURL(link.href);
+      }
+
+      function useCardFiles(id) {
+        const experiment = experimentsCache.find(
+          (candidate) => String(candidate.id) === String(id),
+        );
+        if (!experiment) return;
+        if (experiment.prompt_py) $("promptPy").value = experiment.prompt_py;
+        if (experiment.mix_py) $("mixPy").value = experiment.mix_py;
+        if (experiment.topic) $("answer").value = experiment.topic;
+        st("loaded files from experiment " + id + " into the boxes");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      async function saveVerdict(id, verdict) {
+        const card = document.querySelector('.exp[data-id="' + id + '"]');
+        const comment = card.querySelector("[data-comment]").value;
+        if (verdict === null) {
+          const onButton = card.querySelector(".vrow button.on");
+          verdict = onButton ? onButton.dataset.verdict : "";
+        } else {
+          const current = card.querySelector(".vrow button.on");
+          if (current && current.dataset.verdict === verdict) verdict = "";
+        }
+        try {
+          await api("/api/bench/experiments/" + id + "/verdict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ verdict: verdict, comment: comment }),
+          });
+          card.querySelectorAll(".vrow button").forEach((button) => {
+            button.className =
+              button.dataset.verdict === verdict ? "on" : "off";
+          });
+          const cached = experimentsCache.find(
+            (experiment) => String(experiment.id) === String(id),
+          );
+          if (cached) {
+            cached.verdict = verdict;
+            cached.comment = comment;
+          }
+          st("saved on experiment " + id);
+        } catch (error) {
+          st(error.message);
+        }
+      }
+
+      async function remix(id, defaultMixConfirmed) {
+        if (!$("mixPy").value.trim() && !defaultMixConfirmed) {
+          pendingRemixId = id;
+          setConfirmText(musicNameForRemix(id));
+          $("mixConfirm").hidden = false;
+          return;
+        }
+        $("mixConfirm").hidden = true;
+        st("remixing " + id);
+        try {
+          const form = new FormData();
+          form.append("mix_py", $("mixPy").value);
+          const musicFile = $("music").files[0];
+          if (musicFile) form.append("music", musicFile);
+          const experiment = await api("/api/bench/remix/" + id, {
+            method: "POST",
+            body: form,
+          });
+          $("out").src = experiment.mix_url;
+          $("out").hidden = false;
+          st(
+            "done, experiment " +
+              experiment.id +
+              ", " +
+              experiment.mix_source +
+              (experiment.music_filename
+                ? ", " + experiment.music_filename
+                : ""),
+          );
+          loadHistory();
+        } catch (error) {
+          st(error.message);
+        }
+      }
+
+      // saved file library
+
+      async function loadFiles() {
+        try {
+          const data = await api("/api/bench/files");
+          const promptSelect = $("promptSaved");
+          const mixSelect = $("mixSaved");
+          promptSelect.innerHTML =
+            '<option value="">saved prompt files</option>';
+          mixSelect.innerHTML = '<option value="">saved mix files</option>';
+          data.files.forEach((file) => {
+            const when = new Date(file.created_at).toLocaleString();
+            const option = document.createElement("option");
+            option.value = file.id;
+            option.textContent = file.name + " · " + when;
+            (file.kind === "prompt" ? promptSelect : mixSelect).appendChild(
+              option,
+            );
+          });
+        } catch (error) {}
+      }
+
+      function wireFilebar(
+        kind,
+        selectId,
+        textareaId,
+        saveId,
+        deleteId,
+        namebarId,
+        nameId,
+        nameOkId,
+        nameCancelId,
+      ) {
+        $(selectId).onchange = async () => {
+          const id = $(selectId).value;
+          resetDelete(deleteId);
+          if (!id) return;
+          try {
+            const file = await api("/api/bench/files/" + id);
+            $(textareaId).value = file.content;
+            st("loaded " + file.name);
+          } catch (error) {
+            st(error.message);
+          }
+        };
+        $(saveId).onclick = () => {
+          if (!$(textareaId).value.trim()) {
+            st("nothing to save, the box is empty");
+            return;
+          }
+          $(namebarId).hidden = false;
+          $(nameId).focus();
+        };
+        $(nameCancelId).onclick = () => {
+          $(namebarId).hidden = true;
+          $(nameId).value = "";
+        };
+        $(nameOkId).onclick = async () => {
+          const name = $(nameId).value.trim();
+          if (!name) {
+            st("type a name first");
+            return;
+          }
+          try {
+            await api("/api/bench/files", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                kind: kind,
+                name: name,
+                content: $(textareaId).value,
+              }),
+            });
+            st("saved " + name);
+            $(namebarId).hidden = true;
+            $(nameId).value = "";
+            loadFiles();
+          } catch (error) {
+            st(error.message);
+          }
+        };
+        $(nameId).addEventListener("keydown", (event) => {
+          if (event.key === "Enter") $(nameOkId).click();
+        });
+        $(deleteId).onclick = async () => {
+          const id = $(selectId).value;
+          if (!id) {
+            st("pick a saved file to delete");
+            return;
+          }
+          if ($(deleteId).textContent !== "Confirm delete") {
+            $(deleteId).textContent = "Confirm delete";
+            setTimeout(() => resetDelete(deleteId), 4000);
+            return;
+          }
+          try {
+            await api("/api/bench/files/" + id, { method: "DELETE" });
+            st("deleted");
+            resetDelete(deleteId);
+            loadFiles();
+          } catch (error) {
+            st(error.message);
+          }
+        };
+      }
+
+      function resetDelete(deleteId) {
+        $(deleteId).textContent = "Delete";
+      }
+
+      wireFilebar(
+        "prompt",
+        "promptSaved",
+        "promptPy",
+        "promptSave",
+        "promptDelete",
+        "promptNamebar",
+        "promptName",
+        "promptNameOk",
+        "promptNameCancel",
+      );
+      wireFilebar(
+        "mix",
+        "mixSaved",
+        "mixPy",
+        "mixSave",
+        "mixDelete",
+        "mixNamebar",
+        "mixName",
+        "mixNameOk",
+        "mixNameCancel",
+      );
+
+      loadHistory();
+      loadFiles();
+    </script>
+  </body>
+</html>

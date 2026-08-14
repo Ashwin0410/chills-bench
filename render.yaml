@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: rewire-chills-bench
+    runtime: docker
+    plan: starter
+    disk:
+      name: bench-storage
+      mountPath: /data/bench
+      sizeGB: 1
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: BENCH_DATA_DIR
+        value: /data/bench
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
