@@ -314,9 +314,18 @@
             ><input type="text" id="voice" placeholder="21m00Tcm4TlvDq8ikWAM" />
           </div>
           <div>
+            <label>TTS engine</label>
+            <select id="tts">
+              <option value="elevenlabs">eleven v3</option>
+              <option value="eleven_v2">eleven v2 ssml</option>
+              <option value="fish">fish s2</option>
+            </select>
+          </div>
+          <div>
             <label>Music</label><input type="file" id="music" accept="audio/*" />
           </div>
         </div>
+        <div class="hint" id="ttsHint"></div>
 
         <details>
           <summary>prompt.py</summary>
@@ -470,6 +479,21 @@
       $("mixPy").addEventListener("input", updateMixNote);
       $("music").addEventListener("change", updateMixNote);
 
+      function updateTtsHint() {
+        const provider = $("tts").value;
+        if (provider === "eleven_v2") {
+          $("ttsHint").textContent =
+            "eleven v2: pauses up to 3s are rendered by the model itself, one call, no stitching. No audio tags, write with punctuation and pauses only. Same voice IDs, will sound different from v3.";
+        } else if (provider === "fish") {
+          $("ttsHint").textContent =
+            "fish s2: voice ID is a fish.audio reference id. Bracket tags like [sigh] or [calm] are interpreted by the model. Stability, style, and boost are ignored.";
+        } else {
+          $("ttsHint").textContent =
+            "eleven v3: [pause] 3s, [long pause] 6s, break tags any length, all become exact silence. Stacking adds up.";
+        }
+      }
+      $("tts").addEventListener("change", updateTtsHint);
+
       $("write").onclick = async () => {
         if (!$("promptPy").value.trim()) {
           st("paste a prompt file first");
@@ -530,6 +554,7 @@
           form.append("stability", $("stab").value);
           form.append("style", $("style").value);
           form.append("boost", $("boost").checked);
+          form.append("tts_provider", $("tts").value);
           form.append("experiment_id", lastWriteId);
           form.append("voice_only", voiceOnly);
           const musicFile = $("music").files[0];
@@ -590,6 +615,8 @@
             const params =
               "voice " +
               esc(experiment.voice_id || "none") +
+              ", tts " +
+              esc(experiment.tts_provider || "elevenlabs") +
               ", stability " +
               experiment.stability +
               ", style " +
@@ -949,6 +976,7 @@
       loadHistory();
       loadFiles();
       updateMixNote();
+      updateTtsHint();
     </script>
   </body>
 </html>
