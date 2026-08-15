@@ -23,6 +23,7 @@ load_dotenv()
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
+FISH_API_KEY = os.getenv("FISH_API_KEY", "")
 DATA_DIR = Path(os.getenv("BENCH_DATA_DIR", "./data"))
 AUDIO_DIR = DATA_DIR / "audio"
 MUSIC_DIR = DATA_DIR / "music"
@@ -62,6 +63,7 @@ def init_db():
             voice_file text default '',
             mix_file text default '',
             mix_source text default '',
+            tts_provider text default 'elevenlabs',
             verdict text default '',
             comment text default '',
             parent_id integer
@@ -78,6 +80,10 @@ def init_db():
     """)
     try:
         connection.execute("alter table experiments add column mix_source text default ''")
+    except Exception:
+        pass
+    try:
+        connection.execute("alter table experiments add column tts_provider text default 'elevenlabs'")
     except Exception:
         pass
     connection.commit()
@@ -327,6 +333,8 @@ PAUSE_TOKEN = "[pause]"
 LONG_PAUSE_TOKEN = "[long pause]"
 PAUSE_SENTINEL = "<<<PAUSE>>>"
 LONG_PAUSE_SENTINEL = "<<<LONGPAUSE>>>"
+BREAK_TAG_RE = re.compile(r'<break\s+time="([0-9.]+)\s*(ms|s)"\s*/?\s*>', re.IGNORECASE)
+BREAK_CLOSE_RE = re.compile(r"</\s*break\s*>", re.IGNORECASE)
 MAX_CHARS = 3200
 PAUSE_MS = 3000
 LONG_PAUSE_MS = 6000
@@ -363,10 +371,10 @@ def split_chunks(text, max_chars=MAX_CHARS):
     return chunks
 
 
-def synth_chunk(text, voice_id, voice_settings):
+def synth_chunk(text, voice_id, voice_settings, model_id="eleven_v3"):
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}/stream"
     headers = {"xi-api-key": ELEVENLABS_API_KEY, "accept": "audio/mpeg", "Content-Type": "application/json"}
-    payload = {"text": text, "model_id": "eleven_v3", "voice_settings": voice_settings}
+    payload = {"text": text, "model_id": model_id, "voice_settings": voice_settings}
     last_error = None
     for attempt in range(1, 4):
         try:
@@ -393,24 +401,68 @@ def synth_chunk(text, voice_id, voice_settings):
     raise HTTPException(502, f"tts failed: {last_error}")
 
 
-def synth(text, voice_id, voice_settings, out_path):
-    if not ELEVENLABS_API_KEY:
+def synth_chunk_fish(text, voice_id):
+    url = "https://api.fish.audio/v1/tts"
+    headers = {"Authorization": f"Bearer {FISH_API_KEY}", "Content-Type": "application/json", "model": "s2.1-pro"}
+    payload = {"text": text, "reference_id": voice_id, "format": "wav", "sample_rate": 44100}
+    last_error = None
+    for attempt in range(1, 4):
+        try:
+            response = requests.post(url, headers=headers, json=payload, timeout=180)
+            if response.status_code in (429, 500, 502, 503, 504):
+                last_error = Exception(f"fish http {response.status_code}")
+                if attempt < 3:
+                    time.sleep(1.5 ** attempt)
+                    continue
+                response.raise_for_status()
+            response.raise_for_status()
+            buffer = io.BytesIO(response.content)
+            return AudioSegment.from_file(buffer, format="wav")
+        except requests.RequestException as error:
+            last_error = error
+            if attempt < 3:
+                time.sleep(1.5 ** attempt)
+                continue
+            raise HTTPException(502, f"fish tts failed: {error}")
+    raise HTTPException(502, f"fish tts failed: {last_error}")
+
+
+def synth(text, voice_id, voice_settings, out_path, tts_provider="elevenlabs"):
+    if tts_provider == "fish":
+        if not FISH_API_KEY:
+            raise HTTPException(503, "FISH_API_KEY is not set on the server")
+    elif not ELEVENLABS_API_KEY:
         raise HTTPException(503, "ELEVENLABS_API_KEY is not set on the server")
-    # long pause replaced first so both tokens become their own sentinels
+    # every pause form becomes one ms sentinel: ssml breaks keep their duration,
+    # [pause] is PAUSE_MS, [long pause] is LONG_PAUSE_MS
     raw = text.strip().replace("[breath]", " ")
-    raw = raw.replace(LONG_PAUSE_TOKEN, f" {LONG_PAUSE_SENTINEL} ")
-    raw = raw.replace(PAUSE_TOKEN, f" {PAUSE_SENTINEL} ")
-    parts = re.split(f"({LONG_PAUSE_SENTINEL}|{PAUSE_SENTINEL})", raw)
+    raw = BREAK_CLOSE_RE.sub(" ", raw)
+    def break_to_sentinel(match):
+        value = float(match.group(1))
+        ms = int(value) if match.group(2).lower() == "ms" else int(value * 1000)
+        return f" <<<BREAK:{ms}>>> "
+    raw = BREAK_TAG_RE.sub(break_to_sentinel, raw)
+    raw = raw.replace(LONG_PAUSE_TOKEN, f" <<<BREAK:{LONG_PAUSE_MS}>>> ")
+    raw = raw.replace(PAUSE_TOKEN, f" <<<BREAK:{PAUSE_MS}>>> ")
+    if tts_provider == "eleven_v2":
+        # v2 understands ssml natively, pauses up to 3s go back into the text
+        # as real break tags so the model renders them, no split, no stitch.
+        # longer pauses stay as inserted silence since v2 caps breaks at 3s.
+        def native_or_keep(match):
+            ms = int(match.group(1))
+            if ms <= 3000:
+                return f' <break time="{ms / 1000:.1f}s" /> '
+            return match.group(0)
+        raw = re.sub(r"<<<BREAK:(\d+)>>>", native_or_keep, raw)
+    parts = re.split(r"(<<<BREAK:\d+>>>)", raw)
 
     segments = []
     spoke = False
     for part in parts:
-        if part == LONG_PAUSE_SENTINEL:
-            # every token adds its own silence, so stacked pauses compound
-            segments.append(AudioSegment.silent(duration=LONG_PAUSE_MS, frame_rate=44100))
-            continue
-        if part == PAUSE_SENTINEL:
-            segments.append(AudioSegment.silent(duration=PAUSE_MS, frame_rate=44100))
+        if part.startswith("<<<BREAK:"):
+            # every sentinel adds its own silence, so stacked pauses compound
+            ms = int(part[len("<<<BREAK:"):-len(">>>")])
+            segments.append(AudioSegment.silent(duration=ms, frame_rate=44100))
             continue
         part = part.strip()
         if not part:
@@ -420,7 +472,12 @@ def synth(text, voice_id, voice_settings, out_path):
             print(f"tts chunk {chunk_index + 1}/{len(chunks)}, {len(chunk)} chars")
             if chunk_index:
                 segments.append(AudioSegment.silent(duration=CHUNK_GAP_MS, frame_rate=44100))
-            segments.append(synth_chunk(chunk, voice_id, voice_settings))
+            if tts_provider == "fish":
+                segments.append(synth_chunk_fish(chunk, voice_id))
+            elif tts_provider == "eleven_v2":
+                segments.append(synth_chunk(chunk, voice_id, voice_settings, "eleven_multilingual_v2"))
+            else:
+                segments.append(synth_chunk(chunk, voice_id, voice_settings))
         spoke = True
     if not spoke:
         raise HTTPException(400, "speech text is empty after cleanup")
@@ -467,6 +524,7 @@ def experiment_row(row):
         "voice_url": f"/api/bench/audio/{row['voice_file']}" if row["voice_file"] else None,
         "mix_url": f"/api/bench/audio/{row['mix_file']}" if row["mix_file"] else None,
         "mix_source": row["mix_source"] or "",
+        "tts_provider": row["tts_provider"] or "elevenlabs",
         "verdict": row["verdict"],
         "comment": row["comment"],
         "parent_id": row["parent_id"],
@@ -540,10 +598,14 @@ def make_mp3(
     stability: float = Form(0.5),
     style: float = Form(0.0),
     boost: bool = Form(True),
+    tts_provider: str = Form("elevenlabs"),
     experiment_id: int = Form(0),
     voice_only: bool = Form(False),
     music: UploadFile | None = File(default=None),
 ):
+    tts_provider = tts_provider.strip() or "elevenlabs"
+    if tts_provider not in ("elevenlabs", "eleven_v2", "fish"):
+        raise HTTPException(400, "tts provider must be elevenlabs, eleven_v2, or fish")
     speech = speech.strip()
     voice_id = voice_id.strip()
     if not speech:
@@ -572,7 +634,7 @@ def make_mp3(
 
         voice_settings = {"stability": stability, "similarity_boost": 0.7, "style": style, "use_speaker_boost": boost}
         voice_file = f"{target_id}_voice.wav"
-        synth(speech, voice_id, voice_settings, str(AUDIO_DIR / voice_file))
+        synth(speech, voice_id, voice_settings, str(AUDIO_DIR / voice_file), tts_provider)
         print(f"experiment {target_id} voice saved")
 
         if voice_only:
@@ -585,10 +647,10 @@ def make_mp3(
         connection.execute(
             "update experiments set topic = ?, prompt_py = ?, mix_py = ?, model = ?, voice_id = ?, "
             "stability = ?, style = ?, boost = ?, speech_text = ?, music_filename = ?, music_file = ?, "
-            "voice_file = ?, mix_file = ?, mix_source = ? where id = ?",
+            "voice_file = ?, mix_file = ?, mix_source = ?, tts_provider = ? where id = ?",
             (topic.strip(), prompt_py, mix_py, model, voice_id, stability, style, int(boost), speech,
              music_filename, str(Path(music_path).name) if music_path else "",
-             voice_file, mix_file, source, target_id),
+             voice_file, mix_file, source, tts_provider, target_id),
         )
         connection.commit()
         row = fetch_experiment(connection, target_id)
@@ -892,6 +954,7 @@ def get_zip(experiment_id: int):
             f"speaker boost: {'on' if row['boost'] else 'off'}",
             f"music: {row['music_filename'] or 'none'}",
             f"mix source: {row['mix_source'] or 'none'}",
+            f"tts provider: {row['tts_provider'] or 'elevenlabs'}",
             f"verdict: {row['verdict'] or 'not judged'}",
             f"comment: {row['comment'] or 'none'}",
         ]
