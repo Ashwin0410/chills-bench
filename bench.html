@@ -13,7 +13,7 @@
       body {
         background: #fff;
         color: #111;
-        max-width: 1100px;
+        max-width: 1200px;
         margin: 0 auto;
         padding: 32px 20px 80px;
         font-size: 15px;
@@ -26,7 +26,7 @@
       }
       .layout {
         display: grid;
-        grid-template-columns: 320px 1fr;
+        grid-template-columns: 380px 1fr;
         gap: 36px;
         align-items: start;
       }
@@ -186,6 +186,108 @@
         padding: 8px 12px;
         font-size: 13px;
       }
+
+      /* write feedback: word count and the prompt file's own validate() */
+      #writeInfo {
+        margin-top: 8px;
+        font-size: 12px;
+        display: none;
+      }
+      #writeInfo.show {
+        display: block;
+      }
+      #wordCount {
+        color: #888;
+      }
+      #validation {
+        margin-top: 6px;
+        background: #fff8f0;
+        border: 1px solid #f0d9c0;
+        border-radius: 8px;
+        padding: 9px 11px;
+        color: #8a4b00;
+        white-space: pre-wrap;
+        display: none;
+      }
+      #validation.show {
+        display: block;
+      }
+      #validation .vhead {
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      #validationOk {
+        color: #16a34a;
+        display: none;
+      }
+      #validationOk.show {
+        display: block;
+      }
+
+      /* context library */
+      .ctxbar {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+        align-items: center;
+      }
+      .ctxbar select {
+        flex: 0 0 130px;
+      }
+      .ctxbar input[type="file"] {
+        flex: 1;
+      }
+      .ctxbar button {
+        margin: 0;
+        padding: 8px 12px;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+      .ctxlist {
+        margin-top: 10px;
+      }
+      .ctxitem {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 13px;
+        padding: 6px 0;
+        border-bottom: 1px solid #f4f4f4;
+      }
+      .ctxitem input[type="checkbox"] {
+        width: auto;
+        margin-top: 3px;
+      }
+      .ctxitem .ctxname {
+        flex: 1;
+        min-width: 0;
+      }
+      .ctxitem .ctxmeta {
+        font-size: 11px;
+        color: #aaa;
+      }
+      .ctxitem a {
+        font-size: 12px;
+        color: #b00;
+        text-decoration: none;
+      }
+      #ctxCount {
+        font-size: 12px;
+        color: #888;
+        margin-top: 8px;
+      }
+      #ctxCount.over {
+        color: #b00;
+      }
+
+      /* protocol chaining */
+      #priorNote {
+        font-size: 12px;
+        color: #888;
+        margin-top: 6px;
+      }
+
+      /* history */
       #history {
         border-right: 1px solid #eee;
         padding-right: 24px;
@@ -205,8 +307,41 @@
         color: #888;
         margin: 0 0 8px;
       }
+      #tagFilter {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+      .chip {
+        font-size: 11px;
+        border: 1px solid #e2e2e2;
+        border-radius: 999px;
+        padding: 3px 9px;
+        cursor: pointer;
+        background: #fff;
+        color: #666;
+        user-select: none;
+      }
+      .chip.active {
+        background: #111;
+        border-color: #111;
+        color: #fff;
+      }
+      .protogroup {
+        margin-top: 18px;
+      }
+      .protohead {
+        font-size: 11px;
+        color: #aaa;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #f0f0f0;
+      }
       .exp {
         border: 1px solid #eee;
+        border-left: 3px solid #eee;
         border-radius: 10px;
         padding: 14px;
         margin-top: 12px;
@@ -215,8 +350,28 @@
         font-size: 12px;
         color: #888;
       }
-      .exp .topic {
+      .exp .titlebox {
+        margin-top: 6px;
+      }
+      .exp .titlebox input {
         font-size: 14px;
+        font-weight: 500;
+        padding: 6px 8px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        background: transparent;
+      }
+      .exp .titlebox input:hover {
+        border-color: #eee;
+      }
+      .exp .titlebox input:focus {
+        border-color: #d8d8d8;
+        background: #fff;
+        outline: none;
+      }
+      .exp .topic {
+        font-size: 13px;
+        color: #666;
         margin-top: 4px;
       }
       .exp .topic.clamp {
@@ -282,16 +437,60 @@
         background: #f2f2f2;
         color: #111;
       }
-      .exp .comment {
-        margin-top: 8px;
+      .exp .tagrow {
+        margin-top: 10px;
       }
-      .exp .comment textarea {
+      .exp .tagrow select {
+        font-size: 13px;
+        padding: 7px 10px;
+      }
+      .exp .boxlabel {
+        font-size: 11px;
+        color: #aaa;
+        margin: 10px 0 4px;
+      }
+      .exp textarea {
+        font-size: 13px;
+      }
+      .exp .savebtn {
+        margin-top: 6px;
+        padding: 7px 12px;
         font-size: 13px;
       }
       .exp .params {
         font-size: 11px;
         color: #aaa;
         margin-top: 8px;
+      }
+      .exp .validation {
+        font-size: 12px;
+        color: #8a4b00;
+        background: #fff8f0;
+        border-radius: 8px;
+        padding: 8px 10px;
+        margin-top: 8px;
+        white-space: pre-wrap;
+      }
+      .exp details.log {
+        margin-top: 10px;
+        border-top: 1px solid #f4f4f4;
+        padding-top: 8px;
+      }
+      .exp details.log summary {
+        font-size: 12px;
+      }
+      .exp pre.logtext {
+        font-size: 11px;
+        line-height: 1.45;
+        color: #555;
+        background: #fafafa;
+        border-radius: 8px;
+        padding: 10px;
+        margin: 8px 0 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        max-height: 320px;
+        overflow: auto;
       }
     </style>
   </head>
@@ -301,6 +500,7 @@
     <div class="layout">
       <div id="history">
         <h2>History</h2>
+        <div id="tagFilter"></div>
         <div id="expList"></div>
       </div>
 
@@ -308,11 +508,34 @@
         <label>What do you want to meditate about</label>
         <textarea id="answer" rows="3"></textarea>
 
+        <label>Continue from</label>
+        <select id="prior">
+          <option value="">nothing, this is day 1</option>
+        </select>
+        <div id="priorNote">
+          Pick an earlier piece to build a protocol. Everything before it is sent
+          to the model in order, with its reflections.
+        </div>
+
         <div class="row">
           <div>
-            <label>Voice ID</label
-            ><input type="text" id="voice" placeholder="21m00Tcm4TlvDq8ikWAM" />
+            <label>Voice</label>
+            <select id="voiceSaved">
+              <option value="">saved voices</option>
+            </select>
           </div>
+          <div>
+            <label>Voice ID</label>
+            <input type="text" id="voice" placeholder="21m00Tcm4TlvDq8ikWAM" />
+          </div>
+        </div>
+        <div class="filebar">
+          <input type="text" id="voiceName" placeholder="name this voice to save it" />
+          <button class="sec" id="voiceSave">Save voice</button>
+          <button class="sec" id="voiceDelete">Delete</button>
+        </div>
+
+        <div class="row">
           <div>
             <label>TTS engine</label>
             <select id="tts">
@@ -325,6 +548,25 @@
           </div>
         </div>
         <div class="hint" id="ttsHint"></div>
+
+        <details>
+          <summary>Context files</summary>
+          <div class="ctxbar">
+            <select id="ctxKind">
+              <option value="reference">reference</option>
+              <option value="example">example</option>
+            </select>
+            <input type="file" id="ctxFile" accept=".pdf,.docx,.txt,.md" />
+            <button class="sec" id="ctxUpload">Upload</button>
+          </div>
+          <div class="hint">
+            pdf, docx, txt and md. Reference is background material like a manual
+            or a book. Example is a piece whose style you want matched. Tick the
+            ones to send with the next write.
+          </div>
+          <div class="ctxlist" id="ctxList"></div>
+          <div id="ctxCount"></div>
+        </details>
 
         <details>
           <summary>prompt.py</summary>
@@ -346,8 +588,9 @@
           </div>
           <textarea id="promptPy" rows="6" placeholder="paste prompt.py"></textarea>
           <div class="hint">
-            Any prompt file works. Needs SYSTEM_PROMPT or build_user_prompt().
-            Repo files work as is. The topic above is passed in.
+            Any prompt file works. It looks for SYSTEM_PROMPT or PROMPT, then
+            build_user_prompt(). Repo files work as is. If the file has a
+            validate() function it is run on the result.
           </div>
           <label>Model</label>
           <select id="model">
@@ -375,6 +618,64 @@
           <div class="hint">
             Any mix file works. Needs a mix(voice_path, music_path, out_path)
             function. Repo files work as is. Empty uses a plain default mix.
+          </div>
+        </details>
+
+        <details>
+          <summary>Mix settings</summary>
+          <div class="row">
+            <div>
+              <label>Music gain dB</label>
+              <input
+                type="number"
+                id="musicGain"
+                step="0.5"
+                placeholder="mix default"
+              />
+            </div>
+            <div>
+              <label>Voice level LUFS</label>
+              <input
+                type="number"
+                id="voiceLufs"
+                step="0.5"
+                placeholder="mix default"
+              />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Sync mode</label>
+              <select id="syncMode">
+                <option value="">mix default</option>
+                <option value="no_retime_trim_pad">
+                  no retime, trim and pad
+                </option>
+                <option value="retime_voice_to_music">
+                  retime voice to music
+                </option>
+                <option value="retime_music_to_voice">
+                  retime music to voice
+                </option>
+              </select>
+            </div>
+            <div>
+              <label>Mix profile</label>
+              <select id="mixProfile">
+                <option value="">mix default</option>
+                <option value="auto">auto</option>
+                <option value="primer">primer</option>
+                <option value="jolt">jolt</option>
+                <option value="jolt1">jolt1</option>
+              </select>
+            </div>
+          </div>
+          <div class="hint">
+            Leave a box empty to let the mix file decide. Music gain maps to
+            music_premix_gain_db, voice level to voice_target_lufs. If the mix
+            file has no such argument the gain is applied to the input file
+            instead and the run log says so. Sync mode and profile only reach
+            mix files that declare them.
           </div>
         </details>
 
@@ -416,6 +717,11 @@
           rows="6"
           placeholder="write answer fills this, or paste a speech yourself"
         ></textarea>
+        <div id="writeInfo">
+          <div id="wordCount"></div>
+          <div id="validationOk">validate() found no problems</div>
+          <div id="validation"></div>
+        </div>
 
         <button class="sec" id="write">Write answer</button>
         <button class="sec" id="voiceOnly">Make voice only</button>
@@ -431,6 +737,23 @@
       const st = (message) => ($("st").textContent = message);
       let lastWriteId = 0;
       let experimentsCache = [];
+      let contextCache = [];
+      let voicesCache = [];
+      let tagList = [];
+      let activeFilter = "";
+      let contextCap = 80000;
+
+      const TAG_COLORS = {
+        "day 1 pick": "#2563eb",
+        "day 2 pick": "#2563eb",
+        "day 3 pick": "#2563eb",
+        "day 4 pick": "#2563eb",
+        "day 5 pick": "#2563eb",
+        "best so far": "#16a34a",
+        chills: "#eab308",
+        "close, needs work": "#f97316",
+        rejected: "#dc2626",
+      };
 
       function esc(text) {
         const div = document.createElement("div");
@@ -490,12 +813,294 @@
       }
       $("tts").addEventListener("change", updateTtsHint);
 
+      // voices
+
+      async function loadVoices() {
+        try {
+          const data = await api("/api/bench/voices");
+          voicesCache = data.voices;
+          const select = $("voiceSaved");
+          const current = select.value;
+          select.innerHTML = '<option value="">saved voices</option>';
+          data.voices.forEach((voice) => {
+            const option = document.createElement("option");
+            option.value = voice.voice_id;
+            option.textContent = voice.name;
+            select.appendChild(option);
+          });
+          if (current) select.value = current;
+        } catch (error) {}
+      }
+
+      $("voiceSaved").onchange = () => {
+        const voiceId = $("voiceSaved").value;
+        resetDeleteText("voiceDelete", "Delete");
+        if (!voiceId) return;
+        $("voice").value = voiceId;
+        const found = voicesCache.find((item) => item.voice_id === voiceId);
+        $("voiceName").value = found ? found.name : "";
+        st("using voice " + (found ? found.name : voiceId));
+      };
+
+      $("voiceSave").onclick = async () => {
+        const name = $("voiceName").value.trim();
+        const voiceId = $("voice").value.trim();
+        if (!name) {
+          st("type a name for this voice first");
+          return;
+        }
+        if (!voiceId) {
+          st("paste a voice ID first");
+          return;
+        }
+        try {
+          await api("/api/bench/voices", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: name, voice_id: voiceId }),
+          });
+          st("saved voice " + name);
+          await loadVoices();
+          $("voiceSaved").value = voiceId;
+        } catch (error) {
+          st(error.message);
+        }
+      };
+
+      $("voiceDelete").onclick = async () => {
+        const voiceId = $("voiceSaved").value;
+        if (!voiceId) {
+          st("pick a saved voice to delete");
+          return;
+        }
+        const found = voicesCache.find((item) => item.voice_id === voiceId);
+        if (!found) return;
+        if ($("voiceDelete").textContent !== "Confirm delete") {
+          $("voiceDelete").textContent = "Confirm delete";
+          setTimeout(() => resetDeleteText("voiceDelete", "Delete"), 4000);
+          return;
+        }
+        try {
+          await api("/api/bench/voices/" + found.id, { method: "DELETE" });
+          st("deleted voice " + found.name);
+          resetDeleteText("voiceDelete", "Delete");
+          loadVoices();
+        } catch (error) {
+          st(error.message);
+        }
+      };
+
+      // context library
+
+      async function loadContext() {
+        try {
+          const data = await api("/api/bench/context");
+          contextCache = data.context;
+          contextCap = data.cap || contextCap;
+          renderContext();
+        } catch (error) {}
+      }
+
+      function renderContext() {
+        const list = $("ctxList");
+        if (!contextCache.length) {
+          list.innerHTML =
+            '<div style="font-size:13px;color:#aaa;padding:6px 0">no context files yet</div>';
+          updateContextCount();
+          return;
+        }
+        list.innerHTML = contextCache
+          .map(
+            (file) => `
+        <div class="ctxitem">
+          <input type="checkbox" data-ctx="${file.id}" />
+          <div class="ctxname">
+            ${esc(file.name)}
+            <div class="ctxmeta">${esc(file.kind)} · ${file.chars} chars · ${esc(file.note || "")}</div>
+          </div>
+          <a href="#" data-ctxdel="${file.id}">delete</a>
+        </div>`,
+          )
+          .join("");
+
+        list.querySelectorAll("[data-ctx]").forEach((box) => {
+          box.onchange = updateContextCount;
+        });
+        list.querySelectorAll("[data-ctxdel]").forEach((link) => {
+          link.onclick = async (event) => {
+            event.preventDefault();
+            if (link.textContent !== "confirm") {
+              link.textContent = "confirm";
+              setTimeout(() => {
+                link.textContent = "delete";
+              }, 4000);
+              return;
+            }
+            try {
+              await api("/api/bench/context/" + link.dataset.ctxdel, {
+                method: "DELETE",
+              });
+              st("context file deleted");
+              loadContext();
+            } catch (error) {
+              st(error.message);
+            }
+          };
+        });
+        updateContextCount();
+      }
+
+      function selectedContextIds() {
+        return Array.from(
+          document.querySelectorAll("[data-ctx]:checked"),
+        ).map((box) => box.dataset.ctx);
+      }
+
+      function updateContextCount() {
+        const ids = selectedContextIds();
+        const counter = $("ctxCount");
+        if (!ids.length) {
+          counter.textContent = "nothing selected, no context will be sent";
+          counter.classList.remove("over");
+          return;
+        }
+        let total = 0;
+        ids.forEach((id) => {
+          const found = contextCache.find(
+            (file) => String(file.id) === String(id),
+          );
+          if (found) total += found.chars;
+        });
+        const over = total > contextCap;
+        counter.textContent =
+          ids.length +
+          " selected, " +
+          total +
+          " chars of a " +
+          contextCap +
+          " cap" +
+          (over ? ", the extra will be cut off" : "");
+        counter.classList.toggle("over", over);
+      }
+
+      $("ctxUpload").onclick = async () => {
+        const file = $("ctxFile").files[0];
+        if (!file) {
+          st("pick a file to upload");
+          return;
+        }
+        st("uploading and reading " + file.name);
+        setLoading($("ctxUpload"), true);
+        try {
+          const form = new FormData();
+          form.append("kind", $("ctxKind").value);
+          form.append("file", file);
+          const saved = await api("/api/bench/context", {
+            method: "POST",
+            body: form,
+          });
+          st("added " + saved.name + ", " + saved.chars + " chars");
+          $("ctxFile").value = "";
+          await loadContext();
+          const box = document.querySelector('[data-ctx="' + saved.id + '"]');
+          if (box) {
+            box.checked = true;
+            updateContextCount();
+          }
+        } catch (error) {
+          st(error.message);
+        }
+        setLoading($("ctxUpload"), false);
+      };
+
+      // protocol chaining
+
+      function renderPriorSelect() {
+        const select = $("prior");
+        const current = select.value;
+        select.innerHTML =
+          '<option value="">nothing, this is day 1</option>';
+        experimentsCache
+          .filter((experiment) => experiment.speech_text)
+          .forEach((experiment) => {
+            const option = document.createElement("option");
+            option.value = experiment.id;
+            option.textContent =
+              "#" +
+              experiment.id +
+              " " +
+              (experiment.title || experiment.topic || "untitled");
+            select.appendChild(option);
+          });
+        if (current) select.value = current;
+        updatePriorNote();
+      }
+
+      async function updatePriorNote() {
+        const id = $("prior").value;
+        if (!id) {
+          $("priorNote").textContent =
+            "Pick an earlier piece to build a protocol. Everything before it is sent to the model in order, with its reflections.";
+          return;
+        }
+        try {
+          const data = await api("/api/bench/experiments/" + id + "/chain");
+          const upTo = data.experiments.filter(
+            (experiment) => experiment.id <= Number(id),
+          );
+          const next = upTo.length + 1;
+          $("priorNote").textContent =
+            "This will be day " +
+            next +
+            " of protocol " +
+            data.protocol_id +
+            ". " +
+            upTo.length +
+            " earlier piece" +
+            (upTo.length === 1 ? "" : "s") +
+            " will be sent with it.";
+          const root = data.experiments[0];
+          if (root && root.topic && !$("answer").value.trim()) {
+            $("answer").value = root.topic;
+            st("filled the topic from the start of this protocol");
+          }
+        } catch (error) {
+          $("priorNote").textContent = error.message;
+        }
+      }
+
+      $("prior").onchange = updatePriorNote;
+
+      // write and make
+
+      function showWriteInfo(wordCount, validation) {
+        $("writeInfo").classList.add("show");
+        $("wordCount").textContent = wordCount + " words";
+        if (validation && validation.trim()) {
+          $("validation").innerHTML =
+            '<div class="vhead">validate() found problems</div>' +
+            esc(validation);
+          $("validation").classList.add("show");
+          $("validationOk").classList.remove("show");
+        } else {
+          $("validation").classList.remove("show");
+          $("validationOk").classList.add("show");
+        }
+      }
+
+      function hideWriteInfo() {
+        $("writeInfo").classList.remove("show");
+        $("validation").classList.remove("show");
+        $("validationOk").classList.remove("show");
+      }
+
       $("write").onclick = async () => {
         if (!$("promptPy").value.trim()) {
           st("paste a prompt file first");
           return;
         }
         $("speech").value = "";
+        hideWriteInfo();
         clearAudio();
         lastWriteId = 0;
         st("writing");
@@ -508,17 +1113,34 @@
               topic: $("answer").value,
               prompt_py: $("promptPy").value,
               model: $("model").value,
+              context_ids: selectedContextIds().join(","),
+              prior_id: Number($("prior").value || 0),
             }),
           });
           $("speech").value = data.speech;
           lastWriteId = data.experiment_id;
-          st("text saved as experiment " + data.experiment_id);
+          showWriteInfo(data.word_count, data.validation);
+          st(
+            "text saved as experiment " +
+              data.experiment_id +
+              ", day " +
+              data.day_number +
+              ", prompt from " +
+              data.prompt_source,
+          );
           loadHistory();
         } catch (error) {
           st(error.message);
         }
         setLoading($("write"), false);
       };
+
+      function appendMixSettings(form) {
+        form.append("music_gain_db", $("musicGain").value);
+        form.append("voice_lufs", $("voiceLufs").value);
+        form.append("sync_mode", $("syncMode").value);
+        form.append("mix_profile", $("mixProfile").value);
+      }
 
       async function render(voiceOnly) {
         if (!$("speech").value.trim()) {
@@ -553,6 +1175,7 @@
           form.append("tts_provider", $("tts").value);
           form.append("experiment_id", lastWriteId);
           form.append("voice_only", voiceOnly);
+          appendMixSettings(form);
           const musicFile = $("music").files[0];
           if (musicFile && !voiceOnly) form.append("music", musicFile);
           const experiment = await api("/api/bench/make", {
@@ -583,49 +1206,164 @@
       $("make").onclick = () => render(false);
       $("voiceOnly").onclick = () => render(true);
 
+      // history
+
       async function loadHistory() {
         try {
           const data = await api("/api/bench/experiments");
           experimentsCache = data.experiments;
-          renderHistory(data.experiments);
+          tagList = data.tags || [];
+          renderTagFilter();
+          renderHistory();
+          renderPriorSelect();
         } catch (error) {}
       }
 
-      function renderHistory(experiments) {
+      function renderTagFilter() {
+        const bar = $("tagFilter");
+        const chips = [["", "all"]].concat(tagList.map((tag) => [tag, tag]));
+        bar.innerHTML = chips
+          .map(
+            ([value, label]) =>
+              '<span class="chip' +
+              (activeFilter === value ? " active" : "") +
+              '" data-filter="' +
+              esc(value) +
+              '"' +
+              (value && activeFilter !== value
+                ? ' style="color:' + TAG_COLORS[value] + '"'
+                : "") +
+              ">" +
+              esc(label) +
+              "</span>",
+          )
+          .join("");
+        bar.querySelectorAll("[data-filter]").forEach((chip) => {
+          chip.onclick = () => {
+            activeFilter = chip.dataset.filter;
+            renderTagFilter();
+            renderHistory();
+          };
+        });
+      }
+
+      function groupByProtocol(experiments) {
+        const groups = new Map();
+        experiments.forEach((experiment) => {
+          const key = experiment.protocol_id || experiment.id;
+          if (!groups.has(key)) groups.set(key, []);
+          groups.get(key).push(experiment);
+        });
+        const ordered = Array.from(groups.entries()).map(([key, items]) => {
+          items.sort((a, b) => {
+            if (a.day_number !== b.day_number)
+              return a.day_number - b.day_number;
+            return a.id - b.id;
+          });
+          return { key: key, items: items, newest: Math.max(...items.map((i) => i.id)) };
+        });
+        ordered.sort((a, b) => b.newest - a.newest);
+        return ordered;
+      }
+
+      function renderHistory() {
         const list = $("expList");
+        let experiments = experimentsCache;
+        if (activeFilter) {
+          experiments = experiments.filter(
+            (experiment) => experiment.tag === activeFilter,
+          );
+        }
         if (!experiments.length) {
           list.innerHTML =
-            '<div style="font-size:13px;color:#aaa;margin-top:8px">no experiments yet</div>';
+            '<div style="font-size:13px;color:#aaa;margin-top:8px">' +
+            (activeFilter ? "nothing tagged " + esc(activeFilter) : "no experiments yet") +
+            "</div>";
           return;
         }
-        list.innerHTML = experiments
-          .map((experiment) => {
-            const when = new Date(experiment.created_at).toLocaleString();
-            const remixTag = experiment.parent_id
-              ? " remix of " + experiment.parent_id
-              : "";
-            const audioUrl = experiment.mix_url || experiment.voice_url;
-            const source = audioUrl
-              ? experiment.mix_source || "unknown mix"
-              : "text only, not voiced";
-            const params =
-              "voice " +
-              esc(experiment.voice_id || "none") +
-              ", tts " +
-              esc(experiment.tts_provider || "elevenlabs") +
-              ", stability " +
-              experiment.stability +
-              ", style " +
-              experiment.style +
-              ", boost " +
-              (experiment.boost ? "on" : "off") +
-              (experiment.model ? ", " + esc(experiment.model) : "") +
-              (experiment.music_filename
-                ? ", music " + esc(experiment.music_filename)
-                : "");
-            return `
-    <div class="exp" data-id="${experiment.id}">
-      <div class="meta">#${experiment.id}${remixTag} · ${esc(when)}</div>
+
+        const groups = groupByProtocol(experiments);
+        list.innerHTML = groups
+          .map((group) => {
+            const header =
+              group.items.length > 1
+                ? '<div class="protohead">protocol ' +
+                  group.key +
+                  ", " +
+                  group.items.length +
+                  " pieces</div>"
+                : "";
+            return (
+              '<div class="protogroup">' +
+              header +
+              group.items.map(cardHtml).join("") +
+              "</div>"
+            );
+          })
+          .join("");
+
+        wireCards(list);
+      }
+
+      function cardHtml(experiment) {
+        const when = new Date(experiment.created_at).toLocaleString();
+        const remixTag = experiment.parent_id
+          ? " remix of " + experiment.parent_id
+          : "";
+        const audioUrl = experiment.mix_url || experiment.voice_url;
+        const source = audioUrl
+          ? experiment.mix_source || "unknown mix"
+          : "text only, not voiced";
+        const stripe = experiment.tag
+          ? TAG_COLORS[experiment.tag] || "#eee"
+          : "#eee";
+        const gainBits = [];
+        if (experiment.music_gain_db !== null && experiment.music_gain_db !== undefined)
+          gainBits.push("music " + experiment.music_gain_db + " dB");
+        if (experiment.voice_lufs !== null && experiment.voice_lufs !== undefined)
+          gainBits.push("voice " + experiment.voice_lufs + " LUFS");
+        if (experiment.sync_mode) gainBits.push(esc(experiment.sync_mode));
+        if (experiment.mix_profile) gainBits.push(esc(experiment.mix_profile));
+
+        const params =
+          "voice " +
+          esc(experiment.voice_id || "none") +
+          ", tts " +
+          esc(experiment.tts_provider || "elevenlabs") +
+          ", stability " +
+          experiment.stability +
+          ", style " +
+          experiment.style +
+          ", boost " +
+          (experiment.boost ? "on" : "off") +
+          (experiment.model ? ", " + esc(experiment.model) : "") +
+          (experiment.word_count ? ", " + experiment.word_count + " words" : "") +
+          (experiment.music_filename
+            ? ", music " + esc(experiment.music_filename)
+            : "") +
+          (gainBits.length ? ", " + gainBits.join(", ") : "");
+
+        const tagOptions = ['<option value="">no tag</option>']
+          .concat(
+            tagList.map(
+              (tag) =>
+                '<option value="' +
+                esc(tag) +
+                '"' +
+                (experiment.tag === tag ? " selected" : "") +
+                ">" +
+                esc(tag) +
+                "</option>",
+            ),
+          )
+          .join("");
+
+        return `
+    <div class="exp" data-id="${experiment.id}" style="border-left-color:${stripe}">
+      <div class="meta">#${experiment.id}${remixTag} · day ${experiment.day_number} · ${esc(when)}</div>
+      <div class="titlebox">
+        <input type="text" data-title="${experiment.id}" value="${esc(experiment.title || "")}" placeholder="untitled" />
+      </div>
       ${experiment.topic ? '<div class="topic clamp" data-topic="' + experiment.id + '">' + esc(experiment.topic) + '</div><a href="#" class="more" data-moretopic="' + experiment.id + '">see more</a>' : ""}
       <div class="source">${esc(source)}</div>
       ${audioUrl ? '<audio controls preload="none" src="' + audioUrl + '"></audio>' : ""}
@@ -635,26 +1373,33 @@
         ${experiment.prompt_py ? '<a href="#" data-dlfile="prompt" data-id="' + experiment.id + '">prompt.py</a>' : ""}
         ${experiment.mix_py ? '<a href="#" data-dlfile="mix" data-id="' + experiment.id + '">mix.py</a>' : ""}
         ${experiment.prompt_py || experiment.mix_py ? '<a href="#" data-usefiles="' + experiment.id + '">use these files</a>' : ""}
+        ${experiment.speech_text ? '<a href="#" data-continue="' + experiment.id + '">continue from this</a>' : ""}
         ${experiment.voice_url ? '<a href="#" data-remix="' + experiment.id + '">' + ($("mixPy").value.trim() ? "remix with current mix.py" : "remix") + "</a>" : ""}
         ${experiment.speech_text ? '<a href="#" data-showtext="' + experiment.id + '">show text</a>' : ""}
         <a href="/api/bench/experiments/${experiment.id}/zip" download>zip</a>
         <a href="#" data-del="${experiment.id}" style="color:#b00">delete</a>
       </div>
       ${experiment.speech_text ? '<div class="speechtext" data-text="' + experiment.id + '">' + esc(experiment.speech_text) + "</div>" : ""}
+      ${experiment.validation ? '<div class="validation">validate(): ' + esc(experiment.validation) + "</div>" : ""}
       <div class="vrow">
         <button class="${experiment.verdict === "worked" ? "on" : "off"}" data-verdict="worked" data-id="${experiment.id}">worked</button>
         <button class="${experiment.verdict === "did not work" ? "on" : "off"}" data-verdict="did not work" data-id="${experiment.id}">did not work</button>
       </div>
-      <div class="comment">
-        <textarea rows="2" placeholder="comment" data-comment="${experiment.id}">${esc(experiment.comment)}</textarea>
-        <a href="#" class="more" data-morecomment="${experiment.id}">see more</a>
-        <button class="sec" style="margin-top:6px;padding:7px 12px;font-size:13px" data-save="${experiment.id}">save comment</button>
+      <div class="tagrow">
+        <select data-tagfor="${experiment.id}" style="${experiment.tag ? "border-color:" + stripe + ";color:" + stripe : ""}">${tagOptions}</select>
       </div>
+      <div class="boxlabel">comment, your note on the mix and the audio</div>
+      <textarea rows="2" placeholder="comment" data-comment="${experiment.id}">${esc(experiment.comment)}</textarea>
+      <button class="sec savebtn" data-save="${experiment.id}">save comment</button>
+      <div class="boxlabel">reflection, what the listener said, sent to the next day</div>
+      <textarea rows="2" placeholder="reflection" data-reflection="${experiment.id}">${esc(experiment.reflection)}</textarea>
+      <button class="sec savebtn" data-savereflection="${experiment.id}">save reflection</button>
+      ${experiment.run_log ? '<details class="log"><summary>run log</summary><pre class="logtext">' + esc(experiment.run_log) + "</pre></details>" : ""}
       <div class="params">${params}</div>
     </div>`;
-          })
-          .join("");
+      }
 
+      function wireCards(list) {
         list.querySelectorAll("[data-moretopic]").forEach((link) => {
           const topic = list.querySelector(
             '.topic[data-topic="' + link.dataset.moretopic + '"]',
@@ -667,25 +1412,6 @@
             link.textContent = clamped ? "see more" : "see less";
           };
         });
-        list.querySelectorAll("[data-morecomment]").forEach((link) => {
-          const box = list.querySelector(
-            '[data-comment="' + link.dataset.morecomment + '"]',
-          );
-          if (box.scrollHeight > box.clientHeight + 1)
-            link.classList.add("show");
-          link.onclick = (event) => {
-            event.preventDefault();
-            if (box.dataset.expanded === "1") {
-              box.style.height = "";
-              box.dataset.expanded = "0";
-              link.textContent = "see more";
-            } else {
-              box.style.height = box.scrollHeight + 6 + "px";
-              box.dataset.expanded = "1";
-              link.textContent = "see less";
-            }
-          };
-        });
         list.querySelectorAll("[data-verdict]").forEach((button) => {
           button.onclick = () =>
             saveVerdict(button.dataset.id, button.dataset.verdict);
@@ -693,10 +1419,30 @@
         list.querySelectorAll("[data-save]").forEach((button) => {
           button.onclick = () => saveVerdict(button.dataset.save, null);
         });
+        list.querySelectorAll("[data-savereflection]").forEach((button) => {
+          button.onclick = () => saveReflection(button.dataset.savereflection);
+        });
+        list.querySelectorAll("[data-tagfor]").forEach((select) => {
+          select.onchange = () => saveTag(select.dataset.tagfor, select.value);
+        });
+        list.querySelectorAll("[data-title]").forEach((input) => {
+          input.onblur = () => saveTitle(input.dataset.title, input.value);
+          input.onkeydown = (event) => {
+            if (event.key === "Enter") input.blur();
+          };
+        });
         list.querySelectorAll("[data-remix]").forEach((link) => {
           link.onclick = (event) => {
             event.preventDefault();
             remix(link.dataset.remix);
+          };
+        });
+        list.querySelectorAll("[data-continue]").forEach((link) => {
+          link.onclick = (event) => {
+            event.preventDefault();
+            $("prior").value = link.dataset.continue;
+            updatePriorNote();
+            window.scrollTo({ top: 0, behavior: "smooth" });
           };
         });
         list.querySelectorAll("[data-showtext]").forEach((link) => {
@@ -732,10 +1478,17 @@
               return;
             }
             try {
-              await api("/api/bench/experiments/" + link.dataset.del, {
-                method: "DELETE",
-              });
-              st("deleted, history renumbered");
+              const result = await api(
+                "/api/bench/experiments/" + link.dataset.del,
+                { method: "DELETE" },
+              );
+              const kept = (result.kept_shared || []).length;
+              st(
+                "deleted" +
+                  (kept
+                    ? ", kept " + kept + " file shared with another experiment"
+                    : ""),
+              );
               loadHistory();
             } catch (error) {
               st(error.message);
@@ -768,8 +1521,15 @@
         if (experiment.prompt_py) $("promptPy").value = experiment.prompt_py;
         if (experiment.mix_py) $("mixPy").value = experiment.mix_py;
         if (experiment.topic) $("answer").value = experiment.topic;
+        if (experiment.voice_id) $("voice").value = experiment.voice_id;
+        if (experiment.music_gain_db !== null && experiment.music_gain_db !== undefined)
+          $("musicGain").value = experiment.music_gain_db;
+        if (experiment.voice_lufs !== null && experiment.voice_lufs !== undefined)
+          $("voiceLufs").value = experiment.voice_lufs;
+        if (experiment.sync_mode) $("syncMode").value = experiment.sync_mode;
+        if (experiment.mix_profile) $("mixProfile").value = experiment.mix_profile;
         updateMixNote();
-        st("loaded files from experiment " + id + " into the boxes");
+        st("loaded the settings from experiment " + id + " into the boxes");
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
 
@@ -806,12 +1566,79 @@
         }
       }
 
+      async function saveReflection(id) {
+        const card = document.querySelector('.exp[data-id="' + id + '"]');
+        const reflection = card.querySelector("[data-reflection]").value;
+        try {
+          await api("/api/bench/experiments/" + id + "/reflection", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ reflection: reflection }),
+          });
+          const cached = experimentsCache.find(
+            (experiment) => String(experiment.id) === String(id),
+          );
+          if (cached) cached.reflection = reflection;
+          st("reflection saved on experiment " + id);
+        } catch (error) {
+          st(error.message);
+        }
+      }
+
+      async function saveTag(id, tag) {
+        try {
+          await api("/api/bench/experiments/" + id + "/tag", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tag: tag }),
+          });
+          const cached = experimentsCache.find(
+            (experiment) => String(experiment.id) === String(id),
+          );
+          if (cached) cached.tag = tag;
+          const card = document.querySelector('.exp[data-id="' + id + '"]');
+          const colour = tag ? TAG_COLORS[tag] || "#eee" : "#eee";
+          if (card) {
+            card.style.borderLeftColor = colour;
+            const select = card.querySelector("[data-tagfor]");
+            if (select) {
+              select.style.borderColor = tag ? colour : "";
+              select.style.color = tag ? colour : "";
+            }
+          }
+          st(tag ? "tagged " + tag : "tag cleared");
+          if (activeFilter) renderHistory();
+        } catch (error) {
+          st(error.message);
+        }
+      }
+
+      async function saveTitle(id, title) {
+        const cached = experimentsCache.find(
+          (experiment) => String(experiment.id) === String(id),
+        );
+        if (cached && cached.title === title.trim()) return;
+        try {
+          await api("/api/bench/experiments/" + id + "/title", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title: title }),
+          });
+          if (cached) cached.title = title.trim();
+          renderPriorSelect();
+          st("name saved on experiment " + id);
+        } catch (error) {
+          st(error.message);
+        }
+      }
+
       async function remix(id) {
         clearAudio();
         st("remixing " + id);
         try {
           const form = new FormData();
           form.append("mix_py", $("mixPy").value);
+          appendMixSettings(form);
           const musicFile = $("music").files[0];
           if (musicFile) form.append("music", musicFile);
           const experiment = await api("/api/bench/remix/" + id, {
@@ -946,6 +1773,10 @@
         $(deleteId).textContent = "Delete";
       }
 
+      function resetDeleteText(elementId, text) {
+        $(elementId).textContent = text;
+      }
+
       wireFilebar(
         "prompt",
         "promptSaved",
@@ -971,6 +1802,8 @@
 
       loadHistory();
       loadFiles();
+      loadVoices();
+      loadContext();
       updateMixNote();
       updateTtsHint();
     </script>
