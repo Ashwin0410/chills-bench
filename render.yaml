@@ -6,7 +6,7 @@ services:
     disk:
       name: bench-storage
       mountPath: /data/bench
-      sizeGB: 1
+      sizeGB: 10
     envVars:
       - key: PYTHONUNBUFFERED
         value: "1"
